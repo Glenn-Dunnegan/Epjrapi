@@ -14,7 +14,7 @@ app.use(express.json())
 app.use(morgan('dev'))
 
 mongoose.connect(
-  `mongodb+srv://${process.env.CRED}@epjr.enp5r30.mongodb.net/epjr?appName=mongosh+1.4.1/epjr`,
+  `${process.env.CRED}`,
   () => console.log('Connected to the DB')
 )
 
