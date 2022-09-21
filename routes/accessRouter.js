@@ -31,7 +31,8 @@ function authCheck(request, user, accessLevel, checkType){
         }
     }else if(checkType === 'update'){
         if(
-            (JSON.stringify(tokenStripped(verifiedToken)) === JSON.stringify(tokenStripped(user.withoutPassword())) && (request.auth._id === request.params.userID)) || user.access === accessLevel
+            (JSON.stringify(tokenStripped(verifiedToken)) === JSON.stringify(tokenStripped(user.withoutPassword())) && 
+            (request.auth._id === request.params.userID)) || user.access === accessLevel
         ){
             return true
         }else{
@@ -155,7 +156,7 @@ accessRouter.get('/userwork', (req,res,next) => {
 })
 
 //update Job Status
-accessRouter.put('/:jobID', (req, res, next) => {
+accessRouter.put('/jobstatus/:jobID', (req, res, next) => {
     User.findById(req.auth._id, (err, user) => {
         if(authCheck(req, user, 'admin', 'strict')){
             Job.findOneAndUpdate(
