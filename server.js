@@ -14,7 +14,7 @@ app.use(express.json())
 app.use(morgan('dev'))
 
 mongoose.connect(
-  'mongodb+srv://admin:admin@epjr.enp5r30.mongodb.net/epjr?appName=mongosh+1.4.1/epjr',
+  'mongodb+srv://admin:rmQfWLzZCB2yUrnC@epjr.enp5r30.mongodb.net/epjr?appName=mongosh+1.4.1/epjr',
   () => console.log('Connected to the DB')
 )
 
