@@ -1,4 +1,4 @@
-const serverless = require('serverless-http');
+
 const express = require('express')
 const app = express()
 require('dotenv').config()
@@ -33,4 +33,3 @@ app.use((err, req, res, next) => {
 app.listen(process.env.PORT || 9000, () => {
   console.log(`Server is running on local port 9000`)
 })
-module.exports.handler = serverless(app);
