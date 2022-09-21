@@ -5,10 +5,11 @@ require('dotenv').config()
 const morgan = require('morgan')
 const mongoose = require('mongoose')
 const {expressjwt: jwt} = require('express-jwt')
+const cors = require('cors')
 
 // reference .env file variables like this
 // precess.env.SECRET
-
+app.use(cors())
 app.use(express.json())
 app.use(morgan('dev'))
 
