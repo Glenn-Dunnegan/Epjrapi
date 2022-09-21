@@ -8,13 +8,13 @@ const {expressjwt: jwt} = require('express-jwt')
 const cors = require('cors')
 
 // reference .env file variables like this
-// precess.env.SECRET
+// process.env.SECRET
 app.use(cors())
 app.use(express.json())
 app.use(morgan('dev'))
 
 mongoose.connect(
-  'mongodb+srv://admin:rmQfWLzZCB2yUrnC@epjr.enp5r30.mongodb.net/epjr?appName=mongosh+1.4.1/epjr',
+  `mongodb+srv://${process.env.CRED}@epjr.enp5r30.mongodb.net/epjr?appName=mongosh+1.4.1/epjr`,
   () => console.log('Connected to the DB')
 )
 
