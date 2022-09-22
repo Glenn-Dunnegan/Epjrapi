@@ -136,7 +136,7 @@ accessRouter.get('/work', (req, res, next) => {
     })
 })
 
-//get jobs by user ID
+//route for users to get own job requests
 accessRouter.get('/userwork', (req,res,next) => {
     User.findById(req.auth._id, (err, user) => {
         if(authCheck(req, user, 'member', 'strict') || authCheck(req, user, 'admin', 'strict') ){
