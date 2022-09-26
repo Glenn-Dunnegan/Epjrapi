@@ -1,11 +1,106 @@
 const express = require("express")
 const accessRouter = express.Router()
+require('dotenv').config()
 const User = require('../models/user.js')
 const Job = require('../models/job.js')
 const jwt = require('jsonwebtoken')
+const multer = require('multer')
+const path = require('path')
+const crypto = require('crypto')
+const {GridFsStorage} = require('multer-gridfs-storage')
+
+const storage = new GridFsStorage({url: process.env.CRED})
+const upload = multer({storage: storage})
 
 
-require('dotenv').config()
+// const { connect } = require("http2")
+// const { default: mongoose } = require("mongoose")
+// const { resolve } = require("path")
+// const { Router } = require("express")
+
+// const mongoURI = process.env.CRED
+// const conn = mongoose.createConnection(mongoURI)
+
+// let gfs;
+// conn.once('open', () => {
+//     gfs = new mongoose.mongo.GridFSBucket(conn.db), {
+//         bucketName: 'images'
+//     }
+// })
+
+// const storage = new GridFsStorage({
+//     url: mongoURI,
+//     options:{useUnifiedTopology:true},
+//     file: (req, file) => {
+//         return new Promise((resolve, reject) => {
+//             crypto.randomBytes(16, (err, buf) => {
+//                 if(err){
+//                     return reject(err)
+//                 }
+//                 const filename = but.toString('hex') + path.extname(file.originalname)
+//                 const fileInfo = {
+//                     filename: filename, bucketName: 'images'
+//                 }
+//                 resolve(fileInfo)
+//             })
+//         })
+//     }
+// })
+
+// const store = multer({
+//     storage,
+//     limits: {fileSize: 20000000},
+//     fileFilter: function(req, file, cb){
+//         checkFileType(file, cb)
+//     }
+// })
+
+// function checkFileType(file, cb){
+//     const filetypes = /jpeg|jpg|png/
+//     const extname = filetypes.test(path.extname(file.originalname).toLowerCase())
+//     const mimetype = filetypes.test(file.mimetype)
+//     if(mimetype && extname) return cb(null, true)
+//     cb('filetype')
+// }
+
+// const uploadMiddleware = (req,res, next) => {
+//     const upload = store.single('image')
+//     upload(req, res, function(err){
+//         if(err instanceof multer.MulterError){
+//             return res.status(400).send('File too large')
+//         }else if(err){
+//             if(err=== 'fileType') return res.status(400).send('Image files only')
+//             return res.sendStatus(500)
+//         }
+//         next()
+//     })
+// }
+
+// accessRouter.post('/upload/', uploadMiddleware, async ( req, res) => {
+//     const {file} = req
+//     const {id} = file
+//     if(file.size > 5000000){
+//         deleteImage(id)
+//         return res.status(400).send('file may not exceed 5mb')
+//     }
+//     console.log('uploaded file: ', file)
+//     return res.send(file.id)
+// })
+
+// const deleteImage = id =>{
+//     if(!id || id==='undefined') return res.status(400).send('no image id')
+//     const _id = new mongoose.Types.ObjectId(id)
+//     gfs.delete(_id, err => {
+//         if(err) return res.status(500).send('image deletion error')
+//     })
+// }
+
+// const upload = multer({storage: storage})
+
+/////////////////////////////////^^^youtube mumbojumbo^^^//////////////////////////// 
+
+
+
 
 function authCheck(request, user, accessLevel, checkType){
     const {authorization} = request.headers
@@ -97,12 +192,28 @@ accessRouter.put('/changepassword/:userID', (req, res, next) => {
         })
 })
 
-accessRouter.post('/work', (req, res, next) => {
+accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
 
     User.findById(req.auth._id, (err, user) => {
+        console.log(req.body)
+        console.log(req.file)
         if(authCheck(req, user, 'member', 'strict')){
             req.body.user = req.auth._id
-            const newJob = new Job(req.body)
+            // req.body.imgUrl =  'test'  //req.file.originalname
+            const newJob = new Job({
+                subject: req.body.subject,
+                description: req.body.description,
+                jobLocation: {
+                    line1: req.body.line1,
+                    line2: req.body.line2,
+                    city: req.body.city,
+                    state: req.body.state,
+                    zip: req.body.zip
+                },
+                user: req.body.user,
+                imgUrl: req.file.originalname
+                
+            })
             newJob.save((err, savedJob) => {
                 if(err){
                 res.status(500)

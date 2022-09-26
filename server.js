@@ -4,8 +4,11 @@ const app = express()
 require('dotenv').config()
 const morgan = require('morgan')
 const mongoose = require('mongoose')
+const multer = require('multer')
 const {expressjwt: jwt} = require('express-jwt')
 const cors = require('cors')
+const upload = multer({ dest : 'uploads/'})
+
 
 // reference .env file variables like this
 // process.env.SECRET
