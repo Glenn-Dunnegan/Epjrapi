@@ -129,6 +129,12 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
             const newJob = new Job({
                 subject: req.body.subject,
                 description: req.body.description,
+                poc: {
+                    contactFirstName: req.body.contactFirstName,
+                    contactLastName: req.body.contactLastName,
+                    contactPhone: req.body.contactPhone,
+                    contactEmail: req.body.contactEmail
+                },
                 jobLocation: {
                     line1: req.body.line1,
                     line2: req.body.line2,

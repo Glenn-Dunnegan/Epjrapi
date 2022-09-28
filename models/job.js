@@ -1,7 +1,20 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-
+const pocSchema = new Schema({
+  contactFirstName:{
+    type: String
+  },
+  contactLastName:{
+    type: String
+  },
+  contactPhone:{
+    type: String
+  },
+  contactEmail:{
+    type: String
+  }
+})
 
 const addressSchema = new Schema({
     line1:{
@@ -80,6 +93,9 @@ const jobSchema = new Schema({
   },
   img: {
     type: imgSchema,
+  },
+  poc: {
+    type: pocSchema
   },
   user: {
     type: Schema.Types.ObjectId,
