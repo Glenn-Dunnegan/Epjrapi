@@ -124,53 +124,35 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
         if(authCheck(req, user, 'member', 'strict')){
             req.body.user = req.auth._id
             // req.body.imgUrl =  'test'  //req.file.originalname
-            if(req.file !== null){
-                const newJob = new Job({
-                    subject: req.body.subject,
-                    description: req.body.description,
-                    poc: {
-                        contactFirstName: req.body.contactFirstName,
-                        contactLastName: req.body.contactLastName,
-                        contactPhone: req.body.contactPhone,
-                        contactEmail: req.body.contactEmail
-                    },
-                    jobLocation: {
-                        line1: req.body.line1,
-                        line2: req.body.line2,
-                        city: req.body.city,
-                        state: req.body.state,
-                        zip: req.body.zip
-                    },
-                    user: req.body.user,
-                    img: {
-                        fileName: req.file.originalname,
-                        fileType: req.file.mimetype,
-                        fileSize: req.file.size,
-                        bucketName: req.file.bucketName,
-                        fileID: req.file._id,
-                        savedFileName: req.file.filename
-                    }
-                })
-            }else{
-                const newJob = new Job({
-                    subject: req.body.subject,
-                    description: req.body.description,
-                    poc: {
-                        contactFirstName: req.body.contactFirstName,
-                        contactLastName: req.body.contactLastName,
-                        contactPhone: req.body.contactPhone,
-                        contactEmail: req.body.contactEmail
-                    },
-                    jobLocation: {
-                        line1: req.body.line1,
-                        line2: req.body.line2,
-                        city: req.body.city,
-                        state: req.body.state,
-                        zip: req.body.zip
-                    },
-                    user: req.body.user
-                })
-            }
+            const newJob = new Job({
+                subject: req.body.subject,
+                description: req.body.description,
+                poc: {
+                    contactFirstName: req.body.contactFirstName,
+                    contactLastName: req.body.contactLastName,
+                    contactPhone: req.body.contactPhone,
+                    contactEmail: req.body.contactEmail
+                },
+                jobLocation: {
+                    line1: req.body.line1,
+                    line2: req.body.line2,
+                    city: req.body.city,
+                    state: req.body.state,
+                    zip: req.body.zip
+                },
+                user: req.body.user,
+                img: {
+                    fileName: req.file.originalname,
+                    fileType: req.file.mimetype,
+                    fileSize: req.file.size,
+                    bucketName: req.file.bucketName,
+                    fileID: req.file._id,
+
+                    savedFileName: req.file.filename
+
+                }
+                
+            })
             newJob.save((err, savedJob) => {
                 if(err){
                 res.status(500)
