@@ -124,7 +124,7 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
         if(authCheck(req, user, 'member', 'strict')){
             req.body.user = req.auth._id
             // req.body.imgUrl =  'test'  //req.file.originalname
-            if(req.file){
+            if(req.file !== null){
                 const newJob = new Job({
                     subject: req.body.subject,
                     description: req.body.description,
