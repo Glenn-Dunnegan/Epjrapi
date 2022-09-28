@@ -12,7 +12,7 @@ const upload = multer({ dest : 'uploads/'})
 
 // reference .env file variables like this
 // process.env.SECRET
-app.use(cors())
+
 app.use(express.json())
 app.use(morgan('dev'))
 
@@ -21,6 +21,7 @@ mongoose.connect(
   () => console.log('Connected to the DB')
 )
 
+app.use(cors())
 app.use('/auth', require('./routes/authRouter.js'))
 app.use('/api', jwt({ secret: process.env.SECRET, algorithms: ["HS256"] }),) // req.user
 app.use('/api/job', require('./routes/jobRouter.js'))
