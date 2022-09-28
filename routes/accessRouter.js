@@ -8,99 +8,22 @@ const multer = require('multer')
 const path = require('path')
 const crypto = require('crypto')
 const {GridFsStorage} = require('multer-gridfs-storage')
+const mongoose = require("mongoose")
 
 const storage = new GridFsStorage({url: process.env.CRED})
 const upload = multer({storage: storage})
 
+const mongoURI = process.env.CRED
 
-// const { connect } = require("http2")
-// const { default: mongoose } = require("mongoose")
-// const { resolve } = require("path")
-// const { Router } = require("express")
+const conn = mongoose.createConnection( mongoURI )
 
-// const mongoURI = process.env.CRED
-// const conn = mongoose.createConnection(mongoURI)
+let gfs
 
-// let gfs;
-// conn.once('open', () => {
-//     gfs = new mongoose.mongo.GridFSBucket(conn.db), {
-//         bucketName: 'images'
-//     }
-// })
-
-// const storage = new GridFsStorage({
-//     url: mongoURI,
-//     options:{useUnifiedTopology:true},
-//     file: (req, file) => {
-//         return new Promise((resolve, reject) => {
-//             crypto.randomBytes(16, (err, buf) => {
-//                 if(err){
-//                     return reject(err)
-//                 }
-//                 const filename = but.toString('hex') + path.extname(file.originalname)
-//                 const fileInfo = {
-//                     filename: filename, bucketName: 'images'
-//                 }
-//                 resolve(fileInfo)
-//             })
-//         })
-//     }
-// })
-
-// const store = multer({
-//     storage,
-//     limits: {fileSize: 20000000},
-//     fileFilter: function(req, file, cb){
-//         checkFileType(file, cb)
-//     }
-// })
-
-// function checkFileType(file, cb){
-//     const filetypes = /jpeg|jpg|png/
-//     const extname = filetypes.test(path.extname(file.originalname).toLowerCase())
-//     const mimetype = filetypes.test(file.mimetype)
-//     if(mimetype && extname) return cb(null, true)
-//     cb('filetype')
-// }
-
-// const uploadMiddleware = (req,res, next) => {
-//     const upload = store.single('image')
-//     upload(req, res, function(err){
-//         if(err instanceof multer.MulterError){
-//             return res.status(400).send('File too large')
-//         }else if(err){
-//             if(err=== 'fileType') return res.status(400).send('Image files only')
-//             return res.sendStatus(500)
-//         }
-//         next()
-//     })
-// }
-
-// accessRouter.post('/upload/', uploadMiddleware, async ( req, res) => {
-//     const {file} = req
-//     const {id} = file
-//     if(file.size > 5000000){
-//         deleteImage(id)
-//         return res.status(400).send('file may not exceed 5mb')
-//     }
-//     console.log('uploaded file: ', file)
-//     return res.send(file.id)
-// })
-
-// const deleteImage = id =>{
-//     if(!id || id==='undefined') return res.status(400).send('no image id')
-//     const _id = new mongoose.Types.ObjectId(id)
-//     gfs.delete(_id, err => {
-//         if(err) return res.status(500).send('image deletion error')
-//     })
-// }
-
-// const upload = multer({storage: storage})
-
-/////////////////////////////////^^^youtube mumbojumbo^^^//////////////////////////// 
-
-
-
+conn.once('open', () => {
+    gfs = new mongoose.mongo.GridFSBucket(conn.db, {
+        bucketName: 'fs'
+    })
+})
 
 function authCheck(request, user, accessLevel, checkType){
     const {authorization} = request.headers
@@ -197,6 +120,7 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
     User.findById(req.auth._id, (err, user) => {
         console.log(req.body)
         console.log(req.file)
+        
         if(authCheck(req, user, 'member', 'strict')){
             req.body.user = req.auth._id
             // req.body.imgUrl =  'test'  //req.file.originalname
@@ -211,7 +135,16 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                     zip: req.body.zip
                 },
                 user: req.body.user,
-                imgUrl: req.file.originalname
+                img: {
+                    fileName: req.file.originalname,
+                    fileType: req.file.mimetype,
+                    fileSize: req.file.size,
+                    bucketName: req.file.bucketName,
+                    fileID: req.file._id,
+
+                    savedFileName: req.file.filename
+
+                }
                 
             })
             newJob.save((err, savedJob) => {
@@ -219,6 +152,7 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                 res.status(500)
                 return next(err)
                 }
+                console.log(savedJob)
                 return res.status(201).send(savedJob)
             })
         }else if(err){
@@ -263,6 +197,26 @@ accessRouter.get('/userwork', (req,res,next) => {
         }else{
             return next(new Error("Not Authorized"))
         }
+    })
+})
+
+accessRouter.get('/userworkImages/:jobID', (req, res, next) => {
+    Job.findById({_id: req.params.jobID}, (err, job) => {
+        if(err){
+            res.status(500)
+            return next(err)
+        }
+        
+      
+            gfs.openDownloadStreamByName(job.img.savedFileName).pipe(res)
+        
+        
+        // storage.findById(job.img.fileID, (err, img) => {
+        //     if(err){
+        //         console.log(err)
+        //     }
+        // })
+        //return res.status(200).send(job.img.fileID)
     })
 })
 

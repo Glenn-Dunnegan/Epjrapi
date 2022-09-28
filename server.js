@@ -25,6 +25,7 @@ app.use('/auth', require('./routes/authRouter.js'))
 app.use('/api', jwt({ secret: process.env.SECRET, algorithms: ["HS256"] }),) // req.user
 app.use('/api/job', require('./routes/jobRouter.js'))
 app.use('/api/access', require('./routes/accessRouter.js'))
+app.use('/jobImage', require('./routes/openRouter.js'))
 
 app.use((err, req, res, next) => {
   console.log(err)

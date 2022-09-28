@@ -25,6 +25,38 @@ const addressSchema = new Schema({
     }
 })
 
+const imgSchema = new Schema({
+  fileName: {
+    type: String,
+    required: true
+  },
+  fileType: {
+    type: String,
+    required: true
+  },
+  fileSize: {
+    type: String,
+    required: true
+  },
+  bucketName: {
+    type: String,
+    required: true
+  },
+  uploadDate: {
+    type: Date,
+    default: Date.now
+  },
+  fileID: {
+    type: String,
+  },
+  savedFileName: {
+    type: String,
+    required: true
+  }
+})
+// Be sure to check if required from client
+//_id: "633394e96b62827eaba77fe9"
+
 const jobSchema = new Schema({
   subject: {
     type: String,
@@ -46,8 +78,8 @@ const jobSchema = new Schema({
     type: Date,
     default: Date.now
   },
-  imgUrl: {
-    type: String
+  img: {
+    type: imgSchema,
   },
   user: {
     type: Schema.Types.ObjectId,
