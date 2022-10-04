@@ -249,5 +249,49 @@ accessRouter.put('/jobstatus/:jobID', (req, res, next) => {
     })
 })
 
+accessRouter.put('/jobinspection/:jobID', (req, res, next) => {
+    User.findById(req.auth._id, (err, user) => {
+        if(authCheck(req, user, 'admin', 'strict')){
+            Job.findOneAndUpdate(
+                { _id: req.params.jobID },
+                req.body,
+                { new: true },
+                (err, updatedJob) => {
+                  if(err){
+                    res.status(500)
+                    return next(err)
+                  }
+                  return res.status(201).send(updatedJob)
+                })
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
+accessRouter.put('/jobtimeframe/:jobID', (req, res, next) => {
+    User.findById(req.auth._id, (err, user) => {
+        if(authCheck(req, user, 'admin', 'strict')){
+            Job.findOneAndUpdate(
+                { _id: req.params.jobID },
+                req.body,
+                { new: true },
+                (err, updatedJob) => {
+                  if(err){
+                    res.status(500)
+                    return next(err)
+                  }
+                  return res.status(201).send(updatedJob)
+                })
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
 
 module.exports = accessRouter

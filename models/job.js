@@ -101,7 +101,17 @@ const jobSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "User",
     required: true
+  },
+  inspectionDate:{
+    type: Date
+  },
+  estimatedStart:{
+    type: Date
+  },
+  estimatedFinish:{
+    type: Date
   }
+
 })
 
 module.exports = mongoose.model("Job", jobSchema)
