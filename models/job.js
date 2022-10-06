@@ -75,6 +75,9 @@ const jobSchema = new Schema({
     type: String,
     required: true
   },
+  jobTitle: {
+    type: String
+  },
   jobLocation: {
     type: addressSchema,
     required: true
