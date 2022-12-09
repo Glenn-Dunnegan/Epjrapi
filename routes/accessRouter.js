@@ -9,6 +9,7 @@ const path = require('path')
 const crypto = require('crypto')
 const {GridFsStorage} = require('multer-gridfs-storage')
 const mongoose = require("mongoose")
+const nodemailer = require('nodemailer')
 
 const storage = new GridFsStorage({url: process.env.CRED})
 const upload = multer({storage: storage})
@@ -23,6 +24,14 @@ conn.once('open', () => {
     gfs = new mongoose.mongo.GridFSBucket(conn.db, {
         bucketName: 'fs'
     })
+})
+
+const mailTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.AUTH_EMAIL,
+        pass: process.env.AUTH_PASS
+    }
 })
 
 function authCheck(request, user, accessLevel, checkType){
@@ -50,7 +59,7 @@ function authCheck(request, user, accessLevel, checkType){
     }else if(checkType === 'update'){
         if(
             (JSON.stringify(tokenStripped(verifiedToken)) === JSON.stringify(tokenStripped(user.withoutPassword())) && 
-            (request.auth._id === request.params.userID)) || user.access === accessLevel
+            (request.auth._id === request.params.userID)) || user.access === accessLevel || accessLevel
         ){
             return true
         }else{
@@ -114,6 +123,81 @@ accessRouter.put('/changepassword/:userID', (req, res, next) => {
             }
         })
 })
+
+accessRouter.put('/generateotp/:userID', (req, res, next) => {
+   
+    User.findById(req.auth._id, (err, user) => {
+        
+        if(authCheck(req, user, 'admin'||'member', 'update')){
+            user.otp = `${Math.floor(1000 + Math.random() * 9000)}`
+            const details = {
+                from: 'glenn.dunnegan@gmail.com',
+                to: `${user.email}`,
+                subject: 'testing123',
+                text: `${user.otp}`
+            }
+
+            mailTransporter.sendMail(details, (err) => {
+                
+                if(err){
+                    console.log(err)
+                }else{
+                    console.log("Email has been sent!")
+                }
+            })
+            
+            user.save(function(err,result){
+                if (err){
+                    console.log(err);
+                }
+                else{
+                    console.log(result)
+                }
+            })
+
+            console.log(user)
+            return res.status(200).send("Email has been sent!")
+            
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
+
+accessRouter.put('/checkotp/:userID', (req, res, next) => {
+   
+    User.findById(req.auth._id, (err, user) => {
+        
+        if(authCheck(req, user, 'admin' || 'member', 'update')){
+            console.log(req.body)
+            if(Number(req.body.otp) === user.otp){
+                user.isVerified = true
+            }else{
+                console.log('user has not been verified')
+            }
+            user.save(function(err,result){
+                if (err){
+                    console.log(err);
+                }
+                else{
+                    console.log(result)
+                }
+            })
+
+            console.log(user)
+            return res.status(200).send("Update Successful")
+            
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
 
 
 

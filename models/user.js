@@ -5,24 +5,19 @@ const bcrypt = require('bcrypt')
 
 const addressSchema = new Schema({
     line1:{
-        type: String,
-        required: true
+        type: String
     },
     line2:{
-        type: String,
-        
+        type: String
     },
     city:{
-        type: String,
-        required: true
+        type: String
     },
     state:{
-        type: String,
-        required: true
+        type: String
     },
     zip:{
-        type: Number,
-        required: true
+        type: Number
     }
 })
 
@@ -47,16 +42,21 @@ const userSchema = new Schema({
         required: true
     },
     firstName:{
-        type: String,
-        required: true
+        type: String
     },
     lastName:{
-        type: String,
-        required: true
+        type: String
     },
     address: {
-        type: addressSchema,
+        type: addressSchema
+    },
+    isVerified:{
+        type: Boolean,
+        default: false,
         required: true
+    },
+    otp:{
+        type: Number
     }
 })
 
@@ -91,5 +91,12 @@ userSchema.methods.withoutPassword = function(){
     return user
 }
 
+const sendOTPVerificationEmail = async () => {
+    try {
+        const otp = `${Math.floor(1000 + Math.random() * 9000)}`
+    } catch (error) {
+
+    }
+}
 
 module.exports = mongoose.model("User", userSchema)

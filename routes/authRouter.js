@@ -17,6 +17,7 @@ authRouter.post("/signup", (req,res,next) => {
         }
         const newUser = new User(req.body)
         newUser.access = "member"
+        newUser.isVerified = false
         newUser.save((err, savedUser) => {
             if(err){
                 res.status(500)
