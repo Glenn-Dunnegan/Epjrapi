@@ -17,7 +17,8 @@ authRouter.post("/signup", (req,res,next) => {
         }
         const newUser = new User(req.body)
         newUser.access = "member"
-        newUser.isVerified = false
+        newUser.isVerified = false,
+        newUser.otp = ''
         newUser.save((err, savedUser) => {
             if(err){
                 res.status(500)
@@ -44,6 +45,8 @@ authRouter.post("/login", (req,res,next) => {
             return next( new Error("Email or Password are incorrect") )
         }
 
+
+
         user.checkPassword(req.body.password, (err, isMatch) => {
             if(err){
                 console.log(err)
@@ -51,6 +54,9 @@ authRouter.post("/login", (req,res,next) => {
                 return next(new Error("Email or Password are incorrect"))
             }
             if(!isMatch){
+                if(user.tempRequested){
+                    console.log('yep')
+                }
                 res.status(403)
                 return next(new Error("Email or Password are incorrect"))
             }

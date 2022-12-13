@@ -57,6 +57,13 @@ const userSchema = new Schema({
     },
     otp:{
         type: Number
+    },
+    tempPassword:{
+        type: String
+    },
+    tempRequested:{
+        type: Boolean,
+        default: false
     }
 })
 
@@ -88,15 +95,8 @@ userSchema.methods.checkPassword = function(passwordAttempt, callback){
 userSchema.methods.withoutPassword = function(){
     const user = this.toObject()
     delete user.password
+    delete user.otp
     return user
-}
-
-const sendOTPVerificationEmail = async () => {
-    try {
-        const otp = `${Math.floor(1000 + Math.random() * 9000)}`
-    } catch (error) {
-
-    }
 }
 
 module.exports = mongoose.model("User", userSchema)

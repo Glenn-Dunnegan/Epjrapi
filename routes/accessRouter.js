@@ -124,6 +124,44 @@ accessRouter.put('/changepassword/:userID', (req, res, next) => {
         })
 })
 
+// accessRouter.get('/requestpassword/:userEmail', (req, res, next) => {
+//     User.findOneAndUpdate(
+//         {email: req.params.userEmail},
+//         user.tempPassword = 'testing126',
+//         {new: true},
+//         (err, updatedUser) => {
+//             if(err){
+//                 res.status(500)
+//                 return next(err)
+//             }
+//             return res.status(201).send(updatedUser)
+//         }
+//     )
+// })
+
+// accessRouter.put('/jobstatus/:jobID', (req, res, next) => {
+//     User.findById(req.auth._id, (err, user) => {
+//         if(authCheck(req, user, 'admin', 'strict')){
+//             Job.findOneAndUpdate(
+//                 { _id: req.params.jobID },
+//                 req.body,
+//                 { new: true },
+//                 (err, updatedJob) => {
+//                   if(err){
+//                     res.status(500)
+//                     return next(err)
+//                   }
+//                   return res.status(201).send(updatedJob)
+//                 })
+//         }else if(err){
+//             console.log(err)
+//         }else{
+//             return next(new Error("Not Authorized"))
+//         }
+//     })
+// })
+
+
 accessRouter.put('/generateotp/:userID', (req, res, next) => {
    
     User.findById(req.auth._id, (err, user) => {
@@ -173,10 +211,12 @@ accessRouter.put('/checkotp/:userID', (req, res, next) => {
         
         if(authCheck(req, user, 'admin' || 'member', 'update')){
             console.log(req.body)
-            if(Number(req.body.otp) === user.otp){
+            if(Number(req.body.otp) === user.otp && req.body.otp.length > 3){
                 user.isVerified = true
+                console.log(req.params)
             }else{
                 console.log('user has not been verified')
+                console.log(req.params)
             }
             user.save(function(err,result){
                 if (err){
@@ -197,8 +237,6 @@ accessRouter.put('/checkotp/:userID', (req, res, next) => {
         }
     })
 })
-
-
 
 
 accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
