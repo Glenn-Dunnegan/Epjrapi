@@ -54,8 +54,10 @@ authRouter.post("/login", (req,res,next) => {
                 return next(new Error("Email or Password are incorrect"))
             }
             if(!isMatch){
-                if(user.tempRequested){
+                if(user.tempPassword === req.body.password && req.body.password.length > 5){
                     console.log('yep')
+                    const token = jwt.sign(user.withoutPassword(), process.env.SECRET)
+                    return res.status(200).send({ token, user: user.withoutPassword() })
                 }
                 res.status(403)
                 return next(new Error("Email or Password are incorrect"))

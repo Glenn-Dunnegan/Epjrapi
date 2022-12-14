@@ -101,9 +101,11 @@ accessRouter.put('/changepassword/:userID', (req, res, next) => {
    
         User.findById(req.auth._id, (err, user) => {
             
-            if(authCheck(req, user, 'admin', 'update')){
+            if(authCheck(req, user, 'admin', 'update') || authCheck(req, user, 'member', 'update')){
                 
                 user.password = req.body.password
+                user.tempRequested = false
+                user.tempPassword = ''
                 user.save(function(err,result){
                     if (err){
                         console.log(err);
@@ -114,8 +116,11 @@ accessRouter.put('/changepassword/:userID', (req, res, next) => {
                 })
 
                 console.log(user)
-                return res.status(200).send("Update Successful")
                 
+                const token = jwt.sign(user.withoutPassword(), process.env.SECRET)
+                return res.status(200).send({ token, user: user.withoutPassword()})
+
+
             }else if(err){
                 console.log(err)
             }else{

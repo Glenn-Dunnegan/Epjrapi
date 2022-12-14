@@ -11,22 +11,51 @@ const {GridFsStorage} = require('multer-gridfs-storage')
 const mongoose = require("mongoose")
 const nodemailer = require('nodemailer')
 
+const mailTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.AUTH_EMAIL,
+        pass: process.env.AUTH_PASS
+    }
+})
+
 forgotPasswordRouter.put('/requestpassword/:userEmail', (req, res, next) => {
     User.findOneAndUpdate(
         {email: req.params.userEmail},
 
         {
-            tempPassword: `${Math.floor(1000 + Math.random() * 900000)}`,
+            tempPassword: `${Math.floor(100000 + Math.random() * 900000)}`,
             tempRequested: true
         },
         {new: true},
         (err, updatedUser) => {
+            const details = {
+                from: 'glenn.dunnegan@gmail.com',
+                to: `${req.params.userEmail}`,
+                subject: 'testing123',
+                text: `
+                This is your one time password.
+                After logging in you, will be prompted to create a new one.
+                Upon Which this password will expire.
+
+                ${updatedUser.tempPassword}`
+            }
+
+            mailTransporter.sendMail(details, (err) => {
+                
+                if(err){
+                    console.log(err)
+                }else{
+                    console.log("Email has been sent!")
+                }
+            })
             console.log(User)
+            resMsg = 'Email has been sent'
             if(err){
                 res.status(500)
                 return next(err)
             }
-            return res.status(201).send(updatedUser)
+            return res.status(201).send(resMsg)
         }
     )
 })

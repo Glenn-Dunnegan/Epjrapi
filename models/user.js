@@ -96,6 +96,7 @@ userSchema.methods.withoutPassword = function(){
     const user = this.toObject()
     delete user.password
     delete user.otp
+    delete user.tempPassword
     return user
 }
 
