@@ -173,6 +173,7 @@ accessRouter.put('/generateotp/:userID', (req, res, next) => {
         
         if(authCheck(req, user, 'admin'||'member', 'update')){
             user.otp = `${Math.floor(1000 + Math.random() * 9000)}`
+
             const details = {
                 from: 'glenn.dunnegan@gmail.com',
                 to: `${user.email}`,
@@ -194,12 +195,12 @@ accessRouter.put('/generateotp/:userID', (req, res, next) => {
                     console.log(err);
                 }
                 else{
-                    console.log(result)
+                    console.log('result')
                 }
             })
 
-            console.log(user)
-            return res.status(200).send("Email has been sent!")
+            resMsg = 'Email has been sent'
+            return res.status(200).send(resMsg)
             
         }else if(err){
             console.log(err)
@@ -232,8 +233,9 @@ accessRouter.put('/checkotp/:userID', (req, res, next) => {
                 }
             })
 
-            console.log(user)
-            return res.status(200).send("Update Successful")
+            resMsg = 'Update Successful'
+            const token = jwt.sign(user.withoutPassword(), process.env.SECRET)
+            return res.status(200).send({ token, user: user.withoutPassword(), resMsg})
             
         }else if(err){
             console.log(err)
