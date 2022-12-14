@@ -41,18 +41,18 @@ const Job = require('../models/job.js')
 // })
 
 // Delete Todo
-jobRouter.delete("/:jobId", (req, res, next) => {
-  Job.findOneAndDelete(
-    { _id: req.params.jobId, user: req.auth._id },
-    (err, deletedJob) => {
-      if(err){
-        res.status(500)
-        return next(err)
-      }
-      return res.status(200).send(`Successfully delete todo: ${deletedJob.subject}`)
-    }
-  )
-})
+            // jobRouter.delete("/:jobId", (req, res, next) => {
+            //   Job.findOneAndDelete(
+            //     { _id: req.params.jobId, user: req.auth._id },
+            //     (err, deletedJob) => {
+            //       if(err){
+            //         res.status(500)
+            //         return next(err)
+            //       }
+            //       return res.status(200).send(`Successfully delete todo: ${deletedJob.subject}`)
+            //     }
+            //   )
+            // })
 // added to access router
 // Update Todo
 // jobRouter.put("/:jobID", (req, res, next) => {

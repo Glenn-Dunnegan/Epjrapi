@@ -20,44 +20,61 @@ const mailTransporter = nodemailer.createTransport({
 })
 
 forgotPasswordRouter.put('/requestpassword/:userEmail', (req, res, next) => {
-    User.findOneAndUpdate(
-        {email: req.params.userEmail},
+    
+    
 
-        {
-            tempPassword: `${Math.floor(100000 + Math.random() * 900000)}`,
-            tempRequested: true
-        },
-        {new: true},
-        (err, updatedUser) => {
-            const details = {
-                from: 'glenn.dunnegan@gmail.com',
-                to: `${req.params.userEmail}`,
-                subject: 'testing123',
-                text: `
-                This is your one time password.
-                After logging in you, will be prompted to create a new one.
-                Upon Which this password will expire.
-
-                ${updatedUser.tempPassword}`
-            }
-
-            mailTransporter.sendMail(details, (err) => {
-                
-                if(err){
-                    console.log(err)
-                }else{
-                    console.log("Email has been sent!")
-                }
-            })
-            console.log(User)
-            resMsg = 'Email has been sent'
-            if(err){
-                res.status(500)
-                return next(err)
-            }
-            return res.status(201).send(resMsg)
+    User.findOne({ email: req.params.userEmail }, (err,user) => {
+        if(err){
+            res.status(500)
+            return next(err)
         }
-    )
+        if(!user){
+            resMsg = 'User Does not exist'
+            console.log(resMsg)
+            return res.status(201).send(resMsg)
+            //return next( new Error("Email or Password are incorrect") )
+        }
+
+
+        User.findOneAndUpdate(
+            {email: req.params.userEmail},
+            
+            {
+                tempPassword: `${Math.floor(100000 + Math.random() * 900000)}`,
+                tempRequested: true
+            },
+            {new: true},
+            (err, updatedUser) => {
+                const details = {
+                    from: 'glenn.dunnegan@gmail.com',
+                    to: `${req.params.userEmail}`,
+                    subject: 'testing123',
+                    text: `
+                    This is your one time password.
+                    After logging in you, will be prompted to create a new one.
+                    Upon Which this password will expire.
+
+                    ${updatedUser.tempPassword}`
+                }
+
+                mailTransporter.sendMail(details, (err) => {
+                    
+                    if(err){
+                        console.log(err)
+                    }else{
+                        console.log("Email has been sent!")
+                    }
+                })
+                console.log(User)
+                resMsg = 'Email has been sent'
+                if(err){
+                    res.status(500)
+                    return next(err)
+                }
+                return res.status(201).send(resMsg)
+            }
+        )
+    })
 })
 
 // accessRouter.put('/jobstatus/:jobID', (req, res, next) => {

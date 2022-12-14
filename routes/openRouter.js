@@ -32,8 +32,12 @@ openRouter.get('/Images/:jobID', (req, res, next) => {
             return next(err)
         }
         
-      
-            gfs.openDownloadStreamByName(job.img.savedFileName).pipe(res)
+            try{
+                gfs.openDownloadStreamByName(job.img.savedFileName).pipe(res)
+            }catch{
+                return next(err)
+            }
+            
         
     })
 })

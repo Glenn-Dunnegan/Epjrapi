@@ -249,45 +249,79 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
     User.findById(req.auth._id, (err, user) => {
         
         if(authCheck(req, user, 'member', 'strict')){
-            req.body.user = req.auth._id
-            // req.body.imgUrl =  'test'  //req.file.originalname
-            const newJob = new Job({
-                subject: req.body.subject,
-                description: req.body.description,
-                poc: {
-                    contactFirstName: req.body.contactFirstName,
-                    contactLastName: req.body.contactLastName,
-                    contactPhone: req.body.contactPhone,
-                    contactEmail: req.body.contactEmail
-                },
-                jobLocation: {
-                    line1: req.body.line1,
-                    line2: req.body.line2,
-                    city: req.body.city,
-                    state: req.body.state,
-                    zip: req.body.zip
-                },
-                user: req.body.user,
-                img: {
-                    fileName: req.file.originalname,
-                    fileType: req.file.mimetype,
-                    fileSize: req.file.size,
-                    bucketName: req.file.bucketName,
-                    fileID: req.file._id,
+            if(!req.file){
+                req.body.user = req.auth._id
+                // req.body.imgUrl =  'test'  //req.file.originalname
+                const newJob = new Job({
+                    subject: req.body.subject,
+                    description: req.body.description,
+                    poc: {
+                        contactFirstName: req.body.contactFirstName,
+                        contactLastName: req.body.contactLastName,
+                        contactPhone: req.body.contactPhone,
+                        contactEmail: req.body.contactEmail
+                    },
+                    jobLocation: {
+                        line1: req.body.line1,
+                        line2: req.body.line2,
+                        city: req.body.city,
+                        state: req.body.state,
+                        zip: req.body.zip
+                    },
+                    user: req.body.user
+                    
+                })
+            
+                newJob.save((err, savedJob) => {
+                    if(err){
+                    res.status(500)
+                    return next(err)
+                    }
+                    console.log(savedJob)
+                    return res.status(201).send(savedJob)
+                })
+            }else{
+                req.body.user = req.auth._id
+                // req.body.imgUrl =  'test'  //req.file.originalname
+                const newJob = new Job({
+                    subject: req.body.subject,
+                    description: req.body.description,
+                    poc: {
+                        contactFirstName: req.body.contactFirstName,
+                        contactLastName: req.body.contactLastName,
+                        contactPhone: req.body.contactPhone,
+                        contactEmail: req.body.contactEmail
+                    },
+                    jobLocation: {
+                        line1: req.body.line1,
+                        line2: req.body.line2,
+                        city: req.body.city,
+                        state: req.body.state,
+                        zip: req.body.zip
+                    },
+                    user: req.body.user,
+                    img: {
+                        fileName: req.file.originalname,
+                        fileType: req.file.mimetype,
+                        fileSize: req.file.size,
+                        bucketName: req.file.bucketName,
+                        fileID: req.file._id,
 
-                    savedFileName: req.file.filename
+                        savedFileName: req.file.filename
 
-                }
-                
-            })
-            newJob.save((err, savedJob) => {
-                if(err){
-                res.status(500)
-                return next(err)
-                }
-                console.log(savedJob)
-                return res.status(201).send(savedJob)
-            })
+                    }
+                    
+                })
+            
+                newJob.save((err, savedJob) => {
+                    if(err){
+                    res.status(500)
+                    return next(err)
+                    }
+                    console.log(savedJob)
+                    return res.status(201).send(savedJob)
+                })
+            }
         }else if(err){
             console.log(err)
         }else{
@@ -333,25 +367,25 @@ accessRouter.get('/userwork', (req,res,next) => {
     })
 })
 
-accessRouter.get('/userworkImages/:jobID', (req, res, next) => {
-    Job.findById({_id: req.params.jobID}, (err, job) => {
-        if(err){
-            res.status(500)
-            return next(err)
-        }
-        
-      
-            gfs.openDownloadStreamByName(job.img.savedFileName).pipe(res)
-        
-        
-        // storage.findById(job.img.fileID, (err, img) => {
-        //     if(err){
-        //         console.log(err)
-        //     }
+        // accessRouter.get('/userworkImages/:jobID', (req, res, next) => {
+        //     Job.findById({_id: req.params.jobID}, (err, job) => {
+        //         if(err){
+        //             res.status(500)
+        //             return next(err)
+        //         }
+                
+            
+        //             gfs.openDownloadStreamByName(job.img.savedFileName).pipe(res)
+                
+                
+        //         // storage.findById(job.img.fileID, (err, img) => {
+        //         //     if(err){
+        //         //         console.log(err)
+        //         //     }
+        //         // })
+        //         //return res.status(200).send(job.img.fileID)
+        //     })
         // })
-        //return res.status(200).send(job.img.fileID)
-    })
-})
 
 //update Job Status
 accessRouter.put('/jobstatus/:jobID', (req, res, next) => {
