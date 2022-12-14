@@ -221,8 +221,8 @@ accessRouter.put('/checkotp/:userID', (req, res, next) => {
                 user.isVerified = true
                 console.log(req.params)
             }else{
-                console.log('user has not been verified')
-                console.log(req.params)
+                resMsg = 'Incorrect Code'
+                return res.status(403).send(resMsg)
             }
             user.save(function(err,result){
                 if (err){
