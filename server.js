@@ -38,5 +38,5 @@ app.use((err, req, res, next) => {
 })
 
 app.listen(process.env.PORT || 9000, () => {
-  console.log(`Server is running on local port 9000`)
+  console.log(`Server is running on local port ${process.env.PORT || 9000}`)
 })
