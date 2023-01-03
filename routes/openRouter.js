@@ -42,4 +42,12 @@ openRouter.get('/Images/:jobID', (req, res, next) => {
     })
 })
 
+openRouter.get('/test', (req, res, next) => {
+    
+        res.send('connection successful')
+    
+    
+
+})
+
 module.exports = openRouter
