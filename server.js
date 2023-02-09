@@ -1,6 +1,7 @@
 
 const express = require('express')
 const app = express()
+const http = require('http')
 require('dotenv').config()
 const morgan = require('morgan')
 const mongoose = require('mongoose')
@@ -8,6 +9,15 @@ const multer = require('multer')
 const {expressjwt: jwt} = require('express-jwt')
 const cors = require('cors')
 const upload = multer({ dest : 'uploads/'})
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"]
+  }
+});
 
 
 // reference .env file variables like this
@@ -29,6 +39,17 @@ app.use('/api/access', require('./routes/accessRouter.js'))
 app.use('/jobImage', require('./routes/openRouter.js'))
 app.use('/forgotPassword', require('./routes/forgotPasswordRouter.js'))
 
+io.on('connection', (socket) => {
+  console.log(`User connected: ${socket.id}`);
+  socket.on('disconnect', () => {
+    console.log('user disconnected');
+  });
+  socket.on('eventTime_update', (data) => {
+    console.log(data.message)
+    socket.broadcast.emit('updateSchedule', data)
+  })
+});
+
 app.use((err, req, res, next) => {
   console.log(err)
   if(err.name === "UnauthorizedError"){
@@ -37,6 +58,6 @@ app.use((err, req, res, next) => {
   return res.send({errMsg: err.message})
 })
 
-app.listen(process.env.MYPORT, () => {
+server.listen(process.env.MYPORT, () => {
   console.log(`Server is running on port ${process.env.MYPORT}`)
 })
