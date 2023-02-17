@@ -71,7 +71,7 @@ const imgSchema = new Schema({
 //_id: "633394e96b62827eaba77fe9"
 
 const jobSchema = new Schema({
-  subject: {
+  jobType: {
     type: String,
     required: true
   },
@@ -89,6 +89,7 @@ const jobSchema = new Schema({
   status: {
     type: String,
     default: 'Requested',
+    required: true
   },
   requestDate: {
     type: Date,

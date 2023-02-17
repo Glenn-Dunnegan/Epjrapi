@@ -255,7 +255,7 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                 req.body.user = req.auth._id
                 // req.body.imgUrl =  'test'  //req.file.originalname
                 const newJob = new Job({
-                    subject: req.body.subject,
+                    jobType: req.body.jobType,
                     description: req.body.description,
                     poc: {
                         contactFirstName: req.body.contactFirstName,
@@ -286,7 +286,7 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                 req.body.user = req.auth._id
                 // req.body.imgUrl =  'test'  //req.file.originalname
                 const newJob = new Job({
-                    subject: req.body.subject,
+                    jobType: req.body.jobType,
                     description: req.body.description,
                     poc: {
                         contactFirstName: req.body.contactFirstName,
