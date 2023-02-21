@@ -27,7 +27,9 @@ conn.once('open', () => {
 })
 
 const mailTransporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.zoho.com',
+    port: '465',
+    secure: true,
     auth: {
         user: process.env.AUTH_EMAIL,
         pass: process.env.AUTH_PASS
@@ -175,10 +177,12 @@ accessRouter.put('/generateotp/:userID', (req, res, next) => {
             user.otp = `${Math.floor(1000 + Math.random() * 9000)}`
 
             const details = {
-                from: 'glenn.dunnegan@gmail.com',
+                from: `DirtandSeptic <no_reply@dirtandseptic.com>`,
                 to: `${user.email}`,
-                subject: 'testing123',
-                text: `${user.otp}`
+                subject: 'Email Verification',
+                text: `
+                Please use this code to verify your account.
+                ${user.otp}`
             }
 
             mailTransporter.sendMail(details, (err) => {

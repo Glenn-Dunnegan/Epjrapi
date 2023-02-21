@@ -12,7 +12,9 @@ const mongoose = require("mongoose")
 const nodemailer = require('nodemailer')
 
 const mailTransporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.zoho.com',
+    port: '465',
+    secure: true,
     auth: {
         user: process.env.AUTH_EMAIL,
         pass: process.env.AUTH_PASS
@@ -46,9 +48,9 @@ forgotPasswordRouter.put('/requestpassword/:userEmail', (req, res, next) => {
             {new: true},
             (err, updatedUser) => {
                 const details = {
-                    from: 'glenn.dunnegan@gmail.com',
+                    from: `DirtandSeptic <no_reply@dirtandseptic.com>`,
                     to: `${req.params.userEmail}`,
-                    subject: 'testing123',
+                    subject: 'Forgot Password',
                     text: `
                     This is your one time password.
                     After logging in you, will be prompted to create a new one.
