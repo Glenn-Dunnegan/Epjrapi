@@ -53,7 +53,7 @@ forgotPasswordRouter.put('/requestpassword/:userEmail', (req, res, next) => {
                     subject: 'Forgot Password',
                     text: `
                     This is your one time password.
-                    After logging in you, will be prompted to create a new one.
+                    After logging in, you will be prompted to create a new one.
                     Upon Which this password will expire.
 
                     ${updatedUser.tempPassword}`
