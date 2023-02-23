@@ -1,6 +1,7 @@
 
 const express = require('express')
 const app = express()
+//const https = require('https')
 const http = require('http')
 require('dotenv').config()
 const morgan = require('morgan')
@@ -14,7 +15,7 @@ const { Server } = require("socket.io");
 
 const io = new Server(server, {
   cors: {
-    origin: "https://www.dirtandseptic.com",
+    origin: "http://www.dirtandseptic.com",
     methods: ["GET", "POST"]
   }
 });
