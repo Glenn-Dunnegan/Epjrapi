@@ -21,6 +21,12 @@ const addressSchema = new Schema({
     }
 })
 
+// const knownIpsSchema = new Schema({
+//     knownIps:{
+//         type: Array
+//     }
+// })
+
 const userSchema = new Schema({
     email: {
         type: String,
@@ -50,6 +56,9 @@ const userSchema = new Schema({
     address: {
         type: addressSchema
     },
+    // verifiedIps:{
+    //     type: Array
+    // },
     isVerified:{
         type: Boolean,
         default: false,
