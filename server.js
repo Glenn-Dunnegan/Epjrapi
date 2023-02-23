@@ -18,6 +18,8 @@ const options = {
   cert: fs.readFileSync('/etc/letsencrypt/live/dirtandseptic.com/fullchain.pem'),
 };
 
+const server = https.createServer(options, app);
+
 const io = new Server(server, {
   cors: {
     origin: ["https://dirtandseptic.com", "https://www.dirtandseptic.com"],
@@ -25,7 +27,7 @@ const io = new Server(server, {
   }
 });
 
-const server = https.createServer(options, app);
+
 
 // reference .env file variables like this
 // process.env.SECRET
