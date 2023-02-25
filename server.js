@@ -18,7 +18,7 @@ const options = {
   cert: fs.readFileSync('/etc/letsencrypt/live/dirtandseptic.com/fullchain.pem'),
 };
 
-const server = https.createServer({options}, app);
+const server = https.createServer(options, app);
 //const server = http.createServer(app);
 
 const io = new Server(server, {
