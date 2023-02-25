@@ -18,7 +18,8 @@ const options = {
   cert: fs.readFileSync('/etc/letsencrypt/live/dirtandseptic.com/fullchain.pem'),
 };
 
-const server = https.createServer(options, app);
+const server = https.createServer({options}, app);
+//const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
@@ -67,6 +68,7 @@ io.on('connection', (socket) => {
     socket.disconnect()
   });
   socket.on('eventTime_update', () => {
+    console.log('ping')
     socket.broadcast.emit('updateSchedule')
   })
   //getSockets()
