@@ -68,7 +68,6 @@ io.on('connection', (socket) => {
     socket.disconnect()
   });
   socket.on('eventTime_update', () => {
-    console.log('ping')
     socket.broadcast.emit('updateSchedule')
   })
   //getSockets()
