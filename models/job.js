@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
+mongoose.set('sanitizeProjection', true)
 
 const pocSchema = new Schema({
   contactFirstName:{
@@ -99,7 +100,8 @@ const jobSchema = new Schema({
     type: imgSchema,
   },
   poc: {
-    type: pocSchema
+    type: pocSchema,
+    required: true
   },
   user: {
     type: Schema.Types.ObjectId,

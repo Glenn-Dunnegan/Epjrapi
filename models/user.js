@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 const bcrypt = require('bcrypt')
+mongoose.set('sanitizeProjection', true)
 
 
 const addressSchema = new Schema({

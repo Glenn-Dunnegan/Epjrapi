@@ -354,6 +354,57 @@ accessRouter.get('/work', (req, res, next) => {
     })
 })
 
+accessRouter.get('/work/search/:searchType/:searchParam', (req, res, next) => {
+    User.findById(req.auth._id, (err, user) => {
+        
+        if(authCheck(req, user, 'admin', 'strict')){
+            const type = req.params.searchType
+            if(type === 'nested'){
+                Job.find({'poc.contactEmail': req.params.searchParam},(err, jobs) => {
+                    if(err){
+                      res.status(500)
+                      return next(err)
+                    }
+                    console.log(req.params)
+                    return res.status(200).send(jobs)
+                })
+            }else{
+                Job.find({[type]: req.params.searchParam},(err, jobs) => {
+                    if(err){
+                      res.status(500)
+                      return next(err)
+                    }
+                    console.log(req.params)
+                    return res.status(200).send(jobs)
+                })
+            }
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
+accessRouter.get('/work/searchByName/:pocFirstName/:pocLastName', (req, res, next) => {
+    User.findById(req.auth._id, (err, user) => {   
+        if(authCheck(req, user, 'admin', 'strict')){
+            Job.find({
+                'poc.contactFirstName': req.params.pocFirstName,
+                'poc.contactLastName': req.params.pocLastName
+            },(err, jobs) => {
+                if(err){
+                    res.status(500)
+                    return next(err)
+                }
+                console.log(req.params)
+                return res.status(200).send(jobs)
+            })
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
+
 //route for users to get own job requests
 accessRouter.get('/userwork', (req,res,next) => {
     User.findById(req.auth._id, (err, user) => {
