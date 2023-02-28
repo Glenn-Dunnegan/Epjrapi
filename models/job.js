@@ -116,6 +116,12 @@ const jobSchema = new Schema({
   },
   estimatedFinish:{
     type: Date
+  },
+  startActual:{
+    type: Date
+  },
+  completedActual:{
+    type: Date
   }
 
 })
