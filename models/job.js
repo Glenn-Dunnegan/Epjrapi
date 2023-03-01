@@ -122,6 +122,12 @@ const jobSchema = new Schema({
   },
   completedActual:{
     type: Date
+  },
+  submittedByFirstName:{
+    type:String
+  },
+  submittedByLastName:{
+    type: String
   }
 
 })

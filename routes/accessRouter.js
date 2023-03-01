@@ -274,10 +274,12 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                         state: req.body.state,
                         zip: req.body.zip
                     },
-                    user: req.body.user
-                    
+                    user: req.body.user,
+                    submittedByFirstName: req.auth.firstName,
+                    submittedByLastName: req.auth.lastName
                 })
-            
+                console.log('///////////////////////////////////')
+                //console.log(req)
                 newJob.save((err, savedJob) => {
                     if(err){
                     res.status(500)
@@ -344,6 +346,38 @@ accessRouter.get('/work', (req, res, next) => {
                   res.status(500)
                   return next(err)
                 }
+                const myArr = []
+                jobs.map((job) => (
+                    
+                    User.findById(job.user,(err, foundUser) => {
+                        
+                        if(err){
+                            console.log(err)
+                        }else{
+                            
+                            job = {...job._doc, userFirstName: foundUser.firstName} 
+                           // job = {...job, userFirstName: foundUser.firstName}
+                            // console.log(foundUser.firstName)
+                            // console.log('/////////////////////////////')
+                             //console.log(job)
+                            
+                            myArr.push(job)
+                            //console.log(myArr)
+                        }
+                        
+                        // job = {...job, userFirstName: foundUser.firstName}
+                        // jobsWithUserName.push(job)
+                    })
+                    
+                ))
+
+                // Promise.all(jobsWithUserName).then((updatedJob) => {
+                //     console.log(updatedJob)
+                // })
+                
+                //console.log(jobs)
+                console.log(myArr)
+                //console.log(jobs)
                 return res.status(200).send(jobs)
             })
         }else if(err){
