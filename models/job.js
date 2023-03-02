@@ -4,10 +4,12 @@ mongoose.set('sanitizeProjection', true)
 
 const pocSchema = new Schema({
   contactFirstName:{
-    type: String
+    type: String,
+    index: true
   },
   contactLastName:{
-    type: String
+    type: String,
+    index: true
   },
   contactPhone:{
     type: String
@@ -94,7 +96,7 @@ const jobSchema = new Schema({
   },
   requestDate: {
     type: Date,
-    default: Date.now
+    default: () => Date.now() //- 1.8e+7
   },
   img: {
     type: imgSchema,
@@ -128,6 +130,9 @@ const jobSchema = new Schema({
   },
   submittedByLastName:{
     type: String
+  },
+  estimatedCost: {
+    type: Number
   }
 
 })

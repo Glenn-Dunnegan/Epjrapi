@@ -314,7 +314,6 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                         fileSize: req.file.size,
                         bucketName: req.file.bucketName,
                         fileID: req.file._id,
-
                         savedFileName: req.file.filename
 
                     }
@@ -346,38 +345,64 @@ accessRouter.get('/work', (req, res, next) => {
                   res.status(500)
                   return next(err)
                 }
-                const myArr = []
-                jobs.map((job) => (
+                
+                // const myArr = []
+                // jobs.map((job) => (
                     
-                    User.findById(job.user,(err, foundUser) => {
+                //     User.findById(job.user,(err, foundUser) => {
                         
-                        if(err){
-                            console.log(err)
-                        }else{
+                //         if(err){
+                //             console.log(err)
+                //         }else{
                             
-                            job = {...job._doc, userFirstName: foundUser.firstName} 
-                           // job = {...job, userFirstName: foundUser.firstName}
-                            // console.log(foundUser.firstName)
-                            // console.log('/////////////////////////////')
-                             //console.log(job)
+                //             job = {...job._doc, userFirstName: foundUser.firstName} 
+                //            // job = {...job, userFirstName: foundUser.firstName}
+                //             // console.log(foundUser.firstName)
+                //             // console.log('/////////////////////////////')
+                //              //console.log(job)
                             
-                            myArr.push(job)
-                            //console.log(myArr)
-                        }
+                //             //myArr.push(job)
+                //             //console.log(myArr)
+                //         }
                         
-                        // job = {...job, userFirstName: foundUser.firstName}
-                        // jobsWithUserName.push(job)
-                    })
+                //         // job = {...job, userFirstName: foundUser.firstName}
+                //         // jobsWithUserName.push(job)
+                //     })
                     
-                ))
+                // ))
 
                 // Promise.all(jobsWithUserName).then((updatedJob) => {
                 //     console.log(updatedJob)
                 // })
                 
                 //console.log(jobs)
-                console.log(myArr)
+                //console.log(myArr)
                 //console.log(jobs)
+                return res.status(200).send(jobs)
+            })
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
+accessRouter.get('/work/byDate/:from/:to', (req, res, next) => {
+    User.findById(req.auth._id, (err, user) => {
+        if(authCheck(req, user, 'admin', 'strict')){
+            Job.find({ requestDate: {
+                $gte: new Date( req.params.from ),
+                $lt: new Date( req.params.to )
+            }},
+                (err, jobs) => {
+                if(err){
+                  res.status(500)
+                  return next(err)
+                }
+                
+                console.log(req.params.to)
+                console.log(jobs)
                 return res.status(200).send(jobs)
             })
         }else if(err){
@@ -422,8 +447,10 @@ accessRouter.get('/work/searchByName/:pocFirstName/:pocLastName', (req, res, nex
     User.findById(req.auth._id, (err, user) => {   
         if(authCheck(req, user, 'admin', 'strict')){
             Job.find({
-                'poc.contactFirstName': req.params.pocFirstName,
-                'poc.contactLastName': req.params.pocLastName
+                'poc.contactFirstName': {$regex:  req.params.pocFirstName, '$options': 'i'},
+                //$text: {$search: req.params.pocFirstName},
+                //$text: {$search: req.params.pocLastName}
+                'poc.contactLastName': {$regex:  req.params.pocLastName, '$options': 'i'}
             },(err, jobs) => {
                 if(err){
                     res.status(500)
@@ -431,7 +458,29 @@ accessRouter.get('/work/searchByName/:pocFirstName/:pocLastName', (req, res, nex
                 }
                 console.log(req.params)
                 return res.status(200).send(jobs)
-            })
+            }).limit(10)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
+accessRouter.get('/work/searchByLastName/:pocLastName', (req, res, next) => {
+    User.findById(req.auth._id, (err, user) => {   
+        if(authCheck(req, user, 'admin', 'strict')){
+            Job.find({
+                //'poc.contactFirstName': {$regex:  req.params.pocFirstName, '$options': 'i'},
+                //$text: {$search: req.params.pocFirstName},
+                //$text: {$search: req.params.pocLastName}
+                'poc.contactLastName': {$regex:  req.params.pocLastName, '$options': 'i'}
+            },(err, jobs) => {
+                if(err){
+                    res.status(500)
+                    return next(err)
+                }
+                console.log(req.params)
+                return res.status(200).send(jobs)
+            }).limit(10)
         }else{
             return next(new Error("Not Authorized"))
         }
