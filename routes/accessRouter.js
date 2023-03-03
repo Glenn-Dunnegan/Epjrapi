@@ -77,7 +77,6 @@ accessRouter.get("/userslist", (req, res, next) => {
 
     User.findById(req.auth._id, (err, user) => {
         if(authCheck(req, user, 'admin', 'strict')){
-            console.log(user._id)
             User.find((err, users) => {
                 
                 if(err){
@@ -93,6 +92,59 @@ accessRouter.get("/userslist", (req, res, next) => {
             })
         }else if(err){
             console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
+accessRouter.get("/userslist/searchByName/:firstName/:lastName", (req, res, next) => {
+
+    User.findById(req.auth._id, (err, user) => {
+        if(authCheck(req, user, 'admin', 'strict')){
+            User.find({
+                firstName: {$regex:  req.params.firstName, '$options': 'i'},
+                //$text: {$search: req.params.pocFirstName},
+                //$text: {$search: req.params.pocLastName}
+                lastName: {$regex:  req.params.lastName, '$options': 'i'}
+            },(err, users) => {
+                if(err){
+                res.status(500)
+                return next(err)
+                }
+                const userList = users.map((user)=>
+                user = user.withoutPassword()
+                )
+                console.log(req.params)
+                return res.status(200).send(userList)
+            })
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
+accessRouter.get('/userslist/searchByLastName/:lastName', (req, res, next) => {
+    User.findById(req.auth._id, (err, user) => {   
+        if(authCheck(req, user, 'admin', 'strict')){
+            User.find({
+                //'poc.contactFirstName': {$regex:  req.params.pocFirstName, '$options': 'i'},
+                //$text: {$search: req.params.pocFirstName},
+                //$text: {$search: req.params.pocLastName}
+                lastName: {$regex:  req.params.lastName, '$options': 'i'}
+            },(err, users) => {
+                if(err){
+                    res.status(500)
+                    return next(err)
+                }
+                const userList = users.map((user)=>
+                user = user.withoutPassword()
+                )
+                console.log(req.params)
+                return res.status(200).send(userList)
+            }).limit(10)
         }else{
             return next(new Error("Not Authorized"))
         }
@@ -308,6 +360,93 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                         zip: req.body.zip
                     },
                     user: req.body.user,
+                    img: {
+                        fileName: req.file.originalname,
+                        fileType: req.file.mimetype,
+                        fileSize: req.file.size,
+                        bucketName: req.file.bucketName,
+                        fileID: req.file._id,
+                        savedFileName: req.file.filename
+
+                    }
+                    
+                })
+            
+                newJob.save((err, savedJob) => {
+                    if(err){
+                    res.status(500)
+                    return next(err)
+                    }
+                    console.log(savedJob)
+                    return res.status(201).send(savedJob)
+                })
+            }
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
+accessRouter.post('/workbyadmin/:forUser', upload.single('imgUrl'), (req, res, next) => {
+
+    User.findById(req.auth._id, (err, user) => {
+        
+        if(authCheck(req, user, 'admin', 'strict')){
+            if(!req.file){
+                // req.body.imgUrl =  'test'  //req.file.originalname
+                const newJob = new Job({
+                    jobType: req.body.jobType,
+                    description: req.body.description,
+                    poc: {
+                        contactFirstName: req.body.contactFirstName,
+                        contactLastName: req.body.contactLastName,
+                        contactPhone: req.body.contactPhone,
+                        contactEmail: req.body.contactEmail
+                    },
+                    jobLocation: {
+                        line1: req.body.line1,
+                        line2: req.body.line2,
+                        city: req.body.city,
+                        state: req.body.state,
+                        zip: req.body.zip
+                    },
+                    user: req.params.forUser,
+                    submittedByFirstName: req.auth.firstName,
+                    submittedByLastName: req.auth.lastName
+                })
+                console.log(req.body)
+                console.log('///////////////////////////////////')
+                //console.log(req)
+                newJob.save((err, savedJob) => {
+                    if(err){
+                    res.status(500)
+                    return next(err)
+                    }
+                    console.log(savedJob)
+                    return res.status(201).send(savedJob)
+                })
+            }else{
+                
+                // req.body.imgUrl =  'test'  //req.file.originalname
+                const newJob = new Job({
+                    jobType: req.body.jobType,
+                    description: req.body.description,
+                    poc: {
+                        contactFirstName: req.body.contactFirstName,
+                        contactLastName: req.body.contactLastName,
+                        contactPhone: req.body.contactPhone,
+                        contactEmail: req.body.contactEmail
+                    },
+                    jobLocation: {
+                        line1: req.body.line1,
+                        line2: req.body.line2,
+                        city: req.body.city,
+                        state: req.body.state,
+                        zip: req.body.zip
+                    },
+                    user: req.params.forUser,
                     img: {
                         fileName: req.file.originalname,
                         fileType: req.file.mimetype,
@@ -594,5 +733,41 @@ accessRouter.put('/jobtimeframe/:jobID', (req, res, next) => {
     })
 })
 
+accessRouter.post('/createuser', (req, res, next)=>{
+    User.findById(req.auth._id, (err, user) => {
+        if(authCheck(req, user, 'admin', 'strict')){
+            console.log('this fired')
+            User.findOne({ email: req.body.email.toLowerCase()}, (err, user) => {
+                if(err){
+                    res.status(500)
+                    return next(err)
+                }
+                if(user){
+                    res.status(403)
+                    return next(new Error("That email is already taken"))
+                }
+                req.body.password = crypto.randomInt(100000, 10000000)
+                const newUser = new User(req.body)
+                newUser.access = "member"
+                newUser.isVerified = false,
+                newUser.otp = ''
+                //newUser.verifiedIps.push(IP.address())
+                newUser.save((err, savedUser) => {
+                    if(err){
+                        res.status(500)
+                        return next(err)
+                    }
+        
+                    //console.log(IP.address())
+                    return res.status(201).send('User Created')
+                })
+            })
+        }else{
+            res.status(500)
+            console.log(err)
+            return next(err)
+        }
+    })
+})
 
 module.exports = accessRouter

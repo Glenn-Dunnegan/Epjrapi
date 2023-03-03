@@ -49,10 +49,12 @@ const userSchema = new Schema({
         required: true
     },
     firstName:{
-        type: String
+        type: String,
+        index: true
     },
     lastName:{
-        type: String
+        type: String,
+        index: true
     },
     address: {
         type: addressSchema
