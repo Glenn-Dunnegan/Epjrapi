@@ -29,7 +29,6 @@ const noteSchema = new Schema({
         ref: "Job",
         required: true
     }
-
 })
 
 module.exports = mongoose.model("Note", noteSchema)

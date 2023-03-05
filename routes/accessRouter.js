@@ -3,6 +3,7 @@ const accessRouter = express.Router()
 require('dotenv').config()
 const User = require('../models/user.js')
 const Job = require('../models/job.js')
+const Note = require('../models/note.js')
 const jwt = require('jsonwebtoken')
 const multer = require('multer')
 const path = require('path')
@@ -220,7 +221,6 @@ accessRouter.put('/changepassword/:userID', (req, res, next) => {
 //     })
 // })
 
-
 accessRouter.put('/generateotp/:userID', (req, res, next) => {
    
     User.findById(req.auth._id, (err, user) => {
@@ -301,6 +301,32 @@ accessRouter.put('/checkotp/:userID', (req, res, next) => {
     })
 })
 
+accessRouter.post('/notes/jobnote', (req,res,next)=>{
+    User.findById(req.auth._id, (err, user) => {
+        if(authCheck(req, user, 'admin', 'strict')){
+            const newNote = new Note({
+                madeBy: req.auth._id,
+                fieldChanged: req.body.fieldChanged,
+                changedFrom: req.body.changedFrom,
+                changedTo: req.body.changedTo,
+                addedNote: req.body.addedNote,
+                jobChanged: req.body.jobChanged
+            })
+            newNote.save((err, savedNote) => {
+                if(err){
+                res.status(500)
+                return next(err)
+                }
+                console.log(savedNote)
+                return res.status(201).send(savedNote)
+            })
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
 
 accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
 
@@ -675,12 +701,27 @@ accessRouter.put('/jobstatus/:jobID', (req, res, next) => {
                 req.body,
                 { new: true },
                 (err, updatedJob) => {
-                  if(err){
+                    if(err){
                     res.status(500)
                     return next(err)
-                  }
-                  return res.status(201).send(updatedJob)
-                })
+                    }
+                    console.log(req.body)
+                    const newNote = new Note({
+                        madeBy: req.auth._id,
+                        fieldChanged: Object.keys(req.body)[0],
+                        // changedFrom: req.body.changedFrom,
+                        // changedTo: req.body.changedTo,
+                        jobChanged: req.params.jobID
+                    })
+                    newNote.save((err, savedNote) => {
+                        if(err){
+                        res.status(500)
+                        return next(err)
+                        }
+                        //console.log(savedNote)
+                    })
+                    return res.status(201).send(updatedJob)
+            })
         }else if(err){
             console.log(err)
         }else{
