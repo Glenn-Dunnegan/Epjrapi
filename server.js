@@ -13,10 +13,10 @@ const cors = require('cors')
 const upload = multer({ dest : 'uploads/'})
 const { Server } = require("socket.io");
 
-// const options = {
-//   key: fs.readFileSync('/etc/letsencrypt/live/dirtandseptic.com/privkey.pem'),
-//   cert: fs.readFileSync('/etc/letsencrypt/live/dirtandseptic.com/fullchain.pem'),
-// };
+const options = {
+  key: fs.readFileSync('/etc/letsencrypt/live/dirtandseptic.com/privkey.pem'),
+  cert: fs.readFileSync('/etc/letsencrypt/live/dirtandseptic.com/fullchain.pem'),
+};
 
 const server = https.createServer(options, app);
 //const server = http.createServer(app);
