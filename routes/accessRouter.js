@@ -694,7 +694,7 @@ accessRouter.get('/userwork', (req,res,next) => {
 
 //update Job Status
 
-accessRouter.get('/notes/:refID', (req,res,next) => {
+accessRouter.get('/notes/:refID/:skipAmount', (req,res,next) => {
     User.findById(req.auth._id, (err, user) => {
         if(authCheck(req, user, 'admin', 'strict') ){
             Note.find({ jobChanged: req.params.refID }, (err, notes) => {
@@ -702,8 +702,9 @@ accessRouter.get('/notes/:refID', (req,res,next) => {
                     res.status(500)
                     return next(err)
                 }
+                console.log(notes)
                 return res.status(200).send(notes)
-            })
+            }).sort({ dateChanged: -1 }).skip(req.params.skipAmount).limit(5)
         }else if(err){
             console.log(err)
         }else{

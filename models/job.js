@@ -133,6 +133,9 @@ const jobSchema = new Schema({
   },
   estimatedCost: {
     type: Number
+  },
+  actualCost: {
+    type: Number
   }
 
 })
