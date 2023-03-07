@@ -693,34 +693,74 @@ accessRouter.get('/userwork', (req,res,next) => {
         // })
 
 //update Job Status
-accessRouter.put('/jobstatus/:jobID', (req, res, next) => {
+
+accessRouter.get('/notes/:refID', (req,res,next) => {
     User.findById(req.auth._id, (err, user) => {
-        if(authCheck(req, user, 'admin', 'strict')){
-            Job.findOneAndUpdate(
-                { _id: req.params.jobID },
-                req.body,
-                { new: true },
-                (err, updatedJob) => {
-                    if(err){
+        if(authCheck(req, user, 'admin', 'strict') ){
+            Note.find({ jobChanged: req.params.refID }, (err, notes) => {
+                if(err){
                     res.status(500)
                     return next(err)
-                    }
-                    console.log(req.body)
-                    const newNote = new Note({
-                        madeBy: req.auth._id,
-                        fieldChanged: Object.keys(req.body)[0],
-                        // changedFrom: req.body.changedFrom,
-                        // changedTo: req.body.changedTo,
-                        jobChanged: req.params.jobID
-                    })
-                    newNote.save((err, savedNote) => {
+                }
+                return res.status(200).send(notes)
+            })
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
+function retrieveJob(jobID, callback){
+    Job.findById(jobID, (err, job) => {
+        //was = job[Object.keys(req.body)[0]]
+        if(err){
+            callback(err,null)
+        }else{
+            callback(null, job)
+        }
+    })
+}
+
+accessRouter.put('/jobstatus/:jobID', (req, res, next) => {
+    User.findById(req.auth._id, (err, user) => {
+        let was
+        if(authCheck(req, user, 'admin', 'strict')){
+            retrieveJob(req.params.jobID, (err, job) => {
+                if(err){
+                    console.log(err)
+                }
+                was = job[Object.keys(req.body)[0]]
+                console.log(was)
+                Job.findOneAndUpdate(
+                    { _id: req.params.jobID },
+                    req.body,
+                    { new: true },
+                    (err, updatedJob) => {
                         if(err){
+                        console.log(err)
                         res.status(500)
                         return next(err)
                         }
-                        //console.log(savedNote)
-                    })
-                    return res.status(201).send(updatedJob)
+                        const newNote = new Note({
+                            madeBy: req.auth._id,
+                            fieldChanged: Object.keys(req.body)[0],
+                            changedFrom: was,
+                            changedTo: req.body[Object.keys(req.body)[0]],
+                            jobChanged: req.params.jobID
+                        })
+                        //console.log(was)
+                        console.log(newNote)
+                        newNote.save((err, savedNote) => {
+                            if(err){
+                            res.status(500)
+                            return next(err)
+                            }
+                            //console.log(savedNote)
+                        })
+                        return res.status(201).send(updatedJob)
+                })
             })
         }else if(err){
             console.log(err)
