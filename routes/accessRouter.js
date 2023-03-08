@@ -393,7 +393,6 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                         bucketName: req.file.bucketName,
                         fileID: req.file._id,
                         savedFileName: req.file.filename
-
                     }
                     
                 })
@@ -732,6 +731,7 @@ accessRouter.put('/jobstatus/:jobID', (req, res, next) => {
                 if(err){
                     console.log(err)
                 }
+                console.log(req.body)
                 was = job[Object.keys(req.body)[0]]
                 console.log(was)
                 Job.findOneAndUpdate(
@@ -744,22 +744,37 @@ accessRouter.put('/jobstatus/:jobID', (req, res, next) => {
                         res.status(500)
                         return next(err)
                         }
-                        const newNote = new Note({
-                            madeBy: req.auth._id,
-                            fieldChanged: Object.keys(req.body)[0],
-                            changedFrom: was,
-                            changedTo: req.body[Object.keys(req.body)[0]],
-                            jobChanged: req.params.jobID
-                        })
-                        //console.log(was)
-                        console.log(newNote)
-                        newNote.save((err, savedNote) => {
-                            if(err){
-                            res.status(500)
-                            return next(err)
-                            }
-                            //console.log(savedNote)
-                        })
+                        if(Object.keys(req.body)[0] === 'poc'){
+                            const newNote = new Note({
+                                madeBy: req.auth._id,
+                                fieldChanged: Object.keys(req.body)[0],
+                                pocChangedFrom: was,
+                                pocChangedTo: req.body[Object.keys(req.body)[0]],
+                                jobChanged: req.params.jobID
+                            })
+                            newNote.save((err, savedNote) => {
+                                if(err){
+                                res.status(500)
+                                return next(err)
+                                }
+                            })
+                        }else{
+                            const newNote = new Note({
+                                madeBy: req.auth._id,
+                                fieldChanged: Object.keys(req.body)[0],
+                                changedFrom: was,
+                                changedTo: req.body[Object.keys(req.body)[0]],
+                                jobChanged: req.params.jobID
+                            })
+                            console.log(newNote)
+                            newNote.save((err, savedNote) => {
+                                if(err){
+                                res.status(500)
+                                return next(err)
+                                }
+                            })
+                        }
+                        
                         return res.status(201).send(updatedJob)
                 })
             })

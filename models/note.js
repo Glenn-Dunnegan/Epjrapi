@@ -2,6 +2,23 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 mongoose.set('sanitizeProjection', true)
 
+const pocSchema = new Schema({
+    contactFirstName:{
+      type: String,
+      index: true
+    },
+    contactLastName:{
+      type: String,
+      index: true
+    },
+    contactPhone:{
+      type: String
+    },
+    contactEmail:{
+      type: String
+    }
+  })
+
 const noteSchema = new Schema({
     madeBy:{
         type: Schema.Types.ObjectId,
@@ -16,6 +33,12 @@ const noteSchema = new Schema({
     },
     changedTo:{
         type: String
+    },
+    pocChangedFrom:{
+        type: pocSchema
+    },
+    pocChangedTo:{
+        type: pocSchema
     },
     addedNote:{
         type: String
