@@ -20,10 +20,9 @@ const pocSchema = new Schema({
   })
 
 const noteSchema = new Schema({
+    
     madeBy:{
-        type: Schema.Types.ObjectId,
-        ref: "User",
-        required: true
+        type: String
     },
     fieldChanged:{
         type: String

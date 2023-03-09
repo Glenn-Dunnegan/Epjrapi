@@ -723,15 +723,25 @@ function retrieveJob(jobID, callback){
     })
 }
 
+function retrieveUser(userID, callback){
+    User.findById(userID, (err, thisUser) => {
+        if(err){
+            callback(err,null)
+        }else{
+            callback(null, thisUser)
+        }
+    })
+}
+
 accessRouter.put('/jobstatus/:jobID', (req, res, next) => {
     User.findById(req.auth._id, (err, user) => {
         let was
+        let userName
         if(authCheck(req, user, 'admin', 'strict')){
             retrieveJob(req.params.jobID, (err, job) => {
                 if(err){
                     console.log(err)
                 }
-                console.log(req.body)
                 was = job[Object.keys(req.body)[0]]
                 console.log(was)
                 Job.findOneAndUpdate(
@@ -745,33 +755,39 @@ accessRouter.put('/jobstatus/:jobID', (req, res, next) => {
                         return next(err)
                         }
                         if(Object.keys(req.body)[0] === 'poc'){
-                            const newNote = new Note({
-                                madeBy: req.auth._id,
-                                fieldChanged: Object.keys(req.body)[0],
-                                pocChangedFrom: was,
-                                pocChangedTo: req.body[Object.keys(req.body)[0]],
-                                jobChanged: req.params.jobID
-                            })
-                            newNote.save((err, savedNote) => {
-                                if(err){
-                                res.status(500)
-                                return next(err)
-                                }
+                            retrieveUser(req.auth._id, (err, thisUser)=>{
+                                userName = thisUser.firstName+' '+thisUser.lastName
+                                const newNote = new Note({
+                                    madeBy: userName,
+                                    fieldChanged: Object.keys(req.body)[0],
+                                    pocChangedFrom: was,
+                                    pocChangedTo: req.body[Object.keys(req.body)[0]],
+                                    jobChanged: req.params.jobID
+                                })
+                                console.log(newNote)
+                                newNote.save((err, savedNote) => {
+                                    if(err){
+                                    res.status(500)
+                                    return next(err)
+                                    }
+                                })
                             })
                         }else{
-                            const newNote = new Note({
-                                madeBy: req.auth._id,
-                                fieldChanged: Object.keys(req.body)[0],
-                                changedFrom: was,
-                                changedTo: req.body[Object.keys(req.body)[0]],
-                                jobChanged: req.params.jobID
-                            })
-                            console.log(newNote)
-                            newNote.save((err, savedNote) => {
-                                if(err){
-                                res.status(500)
-                                return next(err)
-                                }
+                            retrieveUser(req.auth._id, (err, thisUser)=>{
+                                userName = thisUser.firstName+' '+thisUser.lastName
+                                const newNote = new Note({
+                                    madeBy: userName,
+                                    fieldChanged: Object.keys(req.body)[0],
+                                    changedFrom: was,
+                                    changedTo: req.body[Object.keys(req.body)[0]],
+                                    jobChanged: req.params.jobID
+                                })
+                                newNote.save((err, savedNote) => {
+                                    if(err){
+                                    res.status(500)
+                                    return next(err)
+                                    }
+                                })
                             })
                         }
                         
