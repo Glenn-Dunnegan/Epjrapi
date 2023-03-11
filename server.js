@@ -69,6 +69,7 @@ io.on('connection', (socket) => {
   });
   socket.on('eventTime_update', () => {
     socket.broadcast.emit('updateSchedule')
+    console.log('pinged')
   })
   //getSockets()
 });

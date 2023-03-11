@@ -301,33 +301,6 @@ accessRouter.put('/checkotp/:userID', (req, res, next) => {
     })
 })
 
-accessRouter.post('/notes/jobnote', (req,res,next)=>{
-    User.findById(req.auth._id, (err, user) => {
-        if(authCheck(req, user, 'admin', 'strict')){
-            const newNote = new Note({
-                madeBy: req.auth._id,
-                fieldChanged: req.body.fieldChanged,
-                changedFrom: req.body.changedFrom,
-                changedTo: req.body.changedTo,
-                addedNote: req.body.addedNote,
-                jobChanged: req.body.jobChanged
-            })
-            newNote.save((err, savedNote) => {
-                if(err){
-                res.status(500)
-                return next(err)
-                }
-                console.log(savedNote)
-                return res.status(201).send(savedNote)
-            })
-        }else if(err){
-            console.log(err)
-        }else{
-            return next(new Error("Not Authorized"))
-        }
-    })
-})
-
 accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
 
     User.findById(req.auth._id, (err, user) => {
@@ -732,6 +705,37 @@ function retrieveUser(userID, callback){
         }
     })
 }
+
+accessRouter.post('/notes/addnote/:refID', (req,res,next)=>{
+    User.findById(req.auth._id, (err, user) => {
+        if(authCheck(req, user, 'admin', 'strict')){
+            retrieveUser(req.auth._id, (err, thisUser)=>{
+                userName = thisUser.firstName+' '+thisUser.lastName
+                const newNote = new Note({
+                    madeBy: userName,
+                    addedNote: req.body.addedNote,
+                    jobChanged: req.params.refID
+                })
+                console.log(newNote)
+                newNote.save((err, savedNote) => {
+                    if(err){
+                    res.status(500)
+                    return next(err)
+                    }
+                    res.status(201).send(savedNote)
+                })
+                if(err){
+                    res.status(500)
+                    return next(err)
+                }
+            })
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
 
 accessRouter.put('/jobstatus/:jobID', (req, res, next) => {
     User.findById(req.auth._id, (err, user) => {
