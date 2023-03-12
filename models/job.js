@@ -15,7 +15,8 @@ const pocSchema = new Schema({
     type: String
   },
   contactEmail:{
-    type: String
+    type: String,
+    index: true
   }
 })
 

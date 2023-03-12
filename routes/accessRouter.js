@@ -556,7 +556,7 @@ accessRouter.get('/work/search/:searchType/:searchParam', (req, res, next) => {
         if(authCheck(req, user, 'admin', 'strict')){
             const type = req.params.searchType
             if(type === 'nested'){
-                Job.find({'poc.contactEmail': req.params.searchParam},(err, jobs) => {
+                Job.find({'poc.contactEmail': {$regex:  req.params.searchParam, '$options': 'i'}},(err, jobs) => {
                     if(err){
                       res.status(500)
                       return next(err)
@@ -605,6 +605,7 @@ accessRouter.get('/work/searchByName/:pocFirstName/:pocLastName', (req, res, nex
 accessRouter.get('/work/searchByLastName/:pocLastName', (req, res, next) => {
     User.findById(req.auth._id, (err, user) => {   
         if(authCheck(req, user, 'admin', 'strict')){
+            let resLength
             Job.find({
                 //'poc.contactFirstName': {$regex:  req.params.pocFirstName, '$options': 'i'},
                 //$text: {$search: req.params.pocFirstName},
@@ -615,9 +616,27 @@ accessRouter.get('/work/searchByLastName/:pocLastName', (req, res, next) => {
                     res.status(500)
                     return next(err)
                 }
-                console.log(req.params)
-                return res.status(200).send(jobs)
-            }).limit(10)
+                resLength = jobs.length
+                if(resLength === 0){
+                    Job.find({
+                        //'poc.contactFirstName': {$regex:  req.params.pocFirstName, '$options': 'i'},
+                        //$text: {$search: req.params.pocFirstName},
+                        //$text: {$search: req.params.pocLastName}
+                        'poc.contactFirstName': {$regex:  req.params.pocLastName, '$options': 'i'}
+                    },(err, jobs) => {
+                        if(err){
+                            res.status(500)
+                            return next(err)
+                        }
+                        
+                        console.log(req.params)
+                        return res.status(200).send(jobs)
+                    })
+                }else{
+                    console.log(req.params)
+                    return res.status(200).send(jobs)
+                }
+            })
         }else{
             return next(new Error("Not Authorized"))
         }
