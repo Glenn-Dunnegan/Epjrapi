@@ -46,9 +46,8 @@ function authCheck(request, user, accessLevel, checkType){
 
     const tokenStripped = function (verifiedToken){
         delete verifiedToken.iat
-        delete verifiedToken._id
         delete verifiedToken.address
-        delete verifiedToken.memberSince
+        delete verifiedToken.tempRequested
         return verifiedToken
     }
     if(checkType === 'strict'){
@@ -116,7 +115,6 @@ accessRouter.get("/userslist/searchByName/:firstName/:lastName", (req, res, next
                 const userList = users.map((user)=>
                 user = user.withoutPassword()
                 )
-                console.log(req.params)
                 return res.status(200).send(userList)
             })
         }else if(err){
@@ -130,6 +128,7 @@ accessRouter.get("/userslist/searchByName/:firstName/:lastName", (req, res, next
 accessRouter.get('/userslist/searchByLastName/:lastName', (req, res, next) => {
     User.findById(req.auth._id, (err, user) => {   
         if(authCheck(req, user, 'admin', 'strict')){
+            let resLength
             User.find({
                 //'poc.contactFirstName': {$regex:  req.params.pocFirstName, '$options': 'i'},
                 //$text: {$search: req.params.pocFirstName},
@@ -140,12 +139,54 @@ accessRouter.get('/userslist/searchByLastName/:lastName', (req, res, next) => {
                     res.status(500)
                     return next(err)
                 }
+                resLength = users.length
+                if(resLength === 0){
+                    User.find({
+                        firstName: {$regex:  req.params.lastName, '$options': 'i'}
+                    },(err, users) => {
+                        if(err){
+                            res.status(500)
+                            return next(err)
+                        }
+                        const userList = users.map((user)=>
+                            user = user.withoutPassword()
+                        )
+                        return res.status(200).send(userList)
+                    })
+
+                }else{
+                    const userList = users.map((user)=>
+                        user = user.withoutPassword()
+                    )
+                    return res.status(200).send(userList)
+                }
+                
+            })
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
+accessRouter.get('/userslist/search/:searchType/:searchParam', (req, res, next) => {
+    User.findById(req.auth._id, (err, user) => {   
+        if(authCheck(req, user, 'admin', 'strict')){
+            const type = req.params.searchType
+            User.find({
+                //'poc.contactFirstName': {$regex:  req.params.pocFirstName, '$options': 'i'},
+                //$text: {$search: req.params.pocFirstName},
+                //$text: {$search: req.params.pocLastName}
+                [type]: {$regex:  req.params.searchParam, '$options': 'i'}
+            },(err, users) => {
+                if(err){
+                    res.status(500)
+                    return next(err)
+                }
                 const userList = users.map((user)=>
                 user = user.withoutPassword()
                 )
-                console.log(req.params)
                 return res.status(200).send(userList)
-            }).limit(10)
+            })
         }else{
             return next(new Error("Not Authorized"))
         }
@@ -165,17 +206,9 @@ accessRouter.put('/changepassword/:userID', (req, res, next) => {
                     if (err){
                         console.log(err);
                     }
-                    else{
-                        console.log(result)
-                    }
-                })
-
-                console.log(user)
-                
+                })              
                 const token = jwt.sign(user.withoutPassword(), process.env.SECRET)
                 return res.status(200).send({ token, user: user.withoutPassword()})
-
-
             }else if(err){
                 console.log(err)
             }else{
@@ -226,7 +259,7 @@ accessRouter.put('/generateotp/:userID', (req, res, next) => {
     User.findById(req.auth._id, (err, user) => {
         
         if(authCheck(req, user, 'admin'||'member', 'update')){
-            user.otp = `${Math.floor(1000 + Math.random() * 9000)}`
+            user.otp = `${Math.floor(1000000 + Math.random() * 9000000)}`
 
             const details = {
                 from: `DirtandSeptic <no_reply@dirtandseptic.com>`,
@@ -250,9 +283,6 @@ accessRouter.put('/generateotp/:userID', (req, res, next) => {
                 if (err){
                     console.log(err);
                 }
-                else{
-                    console.log('result')
-                }
             })
 
             resMsg = 'Email has been sent'
@@ -272,10 +302,8 @@ accessRouter.put('/checkotp/:userID', (req, res, next) => {
     User.findById(req.auth._id, (err, user) => {
         
         if(authCheck(req, user, 'admin' || 'member', 'update')){
-            console.log(req.body)
             if(Number(req.body.otp) === user.otp && req.body.otp.length > 3){
                 user.isVerified = true
-                console.log(req.params)
             }else{
                 resMsg = 'Incorrect Code'
                 return res.status(403).send(resMsg)
@@ -283,9 +311,6 @@ accessRouter.put('/checkotp/:userID', (req, res, next) => {
             user.save(function(err,result){
                 if (err){
                     console.log(err);
-                }
-                else{
-                    console.log(result)
                 }
             })
 
@@ -329,14 +354,11 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                     submittedByFirstName: req.auth.firstName,
                     submittedByLastName: req.auth.lastName
                 })
-                console.log('///////////////////////////////////')
-                //console.log(req)
                 newJob.save((err, savedJob) => {
                     if(err){
                     res.status(500)
                     return next(err)
                     }
-                    console.log(savedJob)
                     return res.status(201).send(savedJob)
                 })
             }else{
@@ -359,6 +381,8 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                         zip: req.body.zip
                     },
                     user: req.body.user,
+                    submittedByFirstName: req.auth.firstName,
+                    submittedByLastName: req.auth.lastName,
                     img: {
                         fileName: req.file.originalname,
                         fileType: req.file.mimetype,
@@ -375,7 +399,6 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                     res.status(500)
                     return next(err)
                     }
-                    console.log(savedJob)
                     return res.status(201).send(savedJob)
                 })
             }
@@ -414,15 +437,11 @@ accessRouter.post('/workbyadmin/:forUser', upload.single('imgUrl'), (req, res, n
                     submittedByFirstName: req.auth.firstName,
                     submittedByLastName: req.auth.lastName
                 })
-                console.log(req.body)
-                console.log('///////////////////////////////////')
-                //console.log(req)
                 newJob.save((err, savedJob) => {
                     if(err){
                     res.status(500)
                     return next(err)
                     }
-                    console.log(savedJob)
                     return res.status(201).send(savedJob)
                 })
             }else{
@@ -445,6 +464,8 @@ accessRouter.post('/workbyadmin/:forUser', upload.single('imgUrl'), (req, res, n
                         zip: req.body.zip
                     },
                     user: req.params.forUser,
+                    submittedByFirstName: req.auth.firstName,
+                    submittedByLastName: req.auth.lastName,
                     img: {
                         fileName: req.file.originalname,
                         fileType: req.file.mimetype,
@@ -462,7 +483,6 @@ accessRouter.post('/workbyadmin/:forUser', upload.single('imgUrl'), (req, res, n
                     res.status(500)
                     return next(err)
                     }
-                    console.log(savedJob)
                     return res.status(201).send(savedJob)
                 })
             }
@@ -537,9 +557,6 @@ accessRouter.get('/work/byDate/:from/:to', (req, res, next) => {
                   res.status(500)
                   return next(err)
                 }
-                
-                console.log(req.params.to)
-                console.log(jobs)
                 return res.status(200).send(jobs)
             })
         }else if(err){
@@ -561,7 +578,6 @@ accessRouter.get('/work/search/:searchType/:searchParam', (req, res, next) => {
                       res.status(500)
                       return next(err)
                     }
-                    console.log(req.params)
                     return res.status(200).send(jobs)
                 })
             }else{
@@ -570,7 +586,6 @@ accessRouter.get('/work/search/:searchType/:searchParam', (req, res, next) => {
                       res.status(500)
                       return next(err)
                     }
-                    console.log(req.params)
                     return res.status(200).send(jobs)
                 })
             }
@@ -593,7 +608,6 @@ accessRouter.get('/work/searchByName/:pocFirstName/:pocLastName', (req, res, nex
                     res.status(500)
                     return next(err)
                 }
-                console.log(req.params)
                 return res.status(200).send(jobs)
             }).limit(10)
         }else{
@@ -628,12 +642,9 @@ accessRouter.get('/work/searchByLastName/:pocLastName', (req, res, next) => {
                             res.status(500)
                             return next(err)
                         }
-                        
-                        console.log(req.params)
                         return res.status(200).send(jobs)
                     })
                 }else{
-                    console.log(req.params)
                     return res.status(200).send(jobs)
                 }
             })
@@ -710,7 +721,6 @@ accessRouter.get('/notes/:refID/:skipAmount', (req,res,next) => {
                     res.status(500)
                     return next(err)
                 }
-                console.log(notes)
                 return res.status(200).send(notes)
             }).sort({ dateChanged: -1 }).skip(req.params.skipAmount).limit(5)
         }else if(err){
@@ -752,7 +762,6 @@ accessRouter.post('/notes/addnote/:refID', (req,res,next)=>{
                     addedNote: req.body.addedNote,
                     jobChanged: req.params.refID
                 })
-                console.log(newNote)
                 newNote.save((err, savedNote) => {
                     if(err){
                     res.status(500)
@@ -783,7 +792,6 @@ accessRouter.put('/jobstatus/:jobID', (req, res, next) => {
                     console.log(err)
                 }
                 was = job[Object.keys(req.body)[0]]
-                console.log(was)
                 Job.findOneAndUpdate(
                     { _id: req.params.jobID },
                     req.body,
@@ -804,7 +812,6 @@ accessRouter.put('/jobstatus/:jobID', (req, res, next) => {
                                     pocChangedTo: req.body[Object.keys(req.body)[0]],
                                     jobChanged: req.params.jobID
                                 })
-                                console.log(newNote)
                                 newNote.save((err, savedNote) => {
                                     if(err){
                                     res.status(500)
@@ -889,7 +896,6 @@ accessRouter.put('/jobtimeframe/:jobID', (req, res, next) => {
 accessRouter.post('/createuser', (req, res, next)=>{
     User.findById(req.auth._id, (err, user) => {
         if(authCheck(req, user, 'admin', 'strict')){
-            console.log('this fired')
             User.findOne({ email: req.body.email.toLowerCase()}, (err, user) => {
                 if(err){
                     res.status(500)
