@@ -662,6 +662,23 @@ accessRouter.get('/userwork', (req,res,next) => {
         }
     })
 })
+accessRouter.get('/userworkbyadmin/:userID', (req,res,next) => {
+    User.findById(req.auth._id, (err, user) => {
+        if(authCheck(req, user, 'admin', 'strict') || authCheck(req, user, 'admin', 'strict') ){
+            Job.find({ user: req.params.userID }, (err, jobs) => {
+            if(err){
+                res.status(500)
+                return next(err)
+            }
+            return res.status(200).send(jobs)
+            })
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
 
         // accessRouter.get('/userworkImages/:jobID', (req, res, next) => {
         //     Job.findById({_id: req.params.jobID}, (err, job) => {
