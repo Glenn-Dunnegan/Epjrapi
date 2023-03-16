@@ -331,11 +331,12 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
     User.findById(req.auth._id, (err, user) => {
         
         if(authCheck(req, user, 'member', 'strict')){
+            console.log(req.body)
             if(!req.file){
                 req.body.user = req.auth._id
                 // req.body.imgUrl =  'test'  //req.file.originalname
                 const newJob = new Job({
-                    jobType: req.body.jobType,
+                    jobType: req.body.jobType==='Other' ? req.body.altJobType : req.body.jobType,
                     description: req.body.description,
                     poc: {
                         contactFirstName: req.body.contactFirstName,
@@ -365,7 +366,7 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                 req.body.user = req.auth._id
                 // req.body.imgUrl =  'test'  //req.file.originalname
                 const newJob = new Job({
-                    jobType: req.body.jobType,
+                    jobType: req.body.jobType==='Other' ? req.body.altJobType : req.body.jobType,
                     description: req.body.description,
                     poc: {
                         contactFirstName: req.body.contactFirstName,
@@ -418,7 +419,7 @@ accessRouter.post('/workbyadmin/:forUser', upload.single('imgUrl'), (req, res, n
             if(!req.file){
                 // req.body.imgUrl =  'test'  //req.file.originalname
                 const newJob = new Job({
-                    jobType: req.body.jobType,
+                    jobType: req.body.jobType==='Other' ? req.body.altJobType : req.body.jobType,
                     description: req.body.description,
                     poc: {
                         contactFirstName: req.body.contactFirstName,
@@ -448,7 +449,7 @@ accessRouter.post('/workbyadmin/:forUser', upload.single('imgUrl'), (req, res, n
                 
                 // req.body.imgUrl =  'test'  //req.file.originalname
                 const newJob = new Job({
-                    jobType: req.body.jobType,
+                    jobType: req.body.jobType==='Other' ? req.body.altJobType : req.body.jobType,
                     description: req.body.description,
                     poc: {
                         contactFirstName: req.body.contactFirstName,
