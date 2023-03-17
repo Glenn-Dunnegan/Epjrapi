@@ -360,7 +360,8 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                     res.status(500)
                     return next(err)
                     }
-                    return res.status(201).send(savedJob)
+                    resMsg = 'Request Submitted'
+                    return res.status(201).send(resMsg)
                 })
             }else{
                 req.body.user = req.auth._id
@@ -400,7 +401,8 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                     res.status(500)
                     return next(err)
                     }
-                    return res.status(201).send(savedJob)
+                    resMsg = 'Request Submitted'
+                    return res.status(201).send(resMsg)
                 })
             }
         }else if(err){
@@ -610,7 +612,7 @@ accessRouter.get('/work/searchByName/:pocFirstName/:pocLastName', (req, res, nex
                     return next(err)
                 }
                 return res.status(200).send(jobs)
-            }).limit(10)
+            })
         }else{
             return next(new Error("Not Authorized"))
         }
@@ -799,7 +801,6 @@ accessRouter.put('/jobstatus/:jobID', (req, res, next) => {
                     { new: true },
                     (err, updatedJob) => {
                         if(err){
-                        console.log(err)
                         res.status(500)
                         return next(err)
                         }
@@ -838,8 +839,8 @@ accessRouter.put('/jobstatus/:jobID', (req, res, next) => {
                                 })
                             })
                         }
-                        
-                        return res.status(201).send(updatedJob)
+                    
+                        return res.status(200).send(updatedJob)
                 })
             })
         }else if(err){

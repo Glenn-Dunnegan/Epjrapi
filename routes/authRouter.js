@@ -48,8 +48,6 @@ authRouter.post("/login", (req,res,next) => {
             return next( new Error("Email or Password are incorrect") )
         }
 
-
-
         user.checkPassword(req.body.password, (err, isMatch) => {
             if(err){
                 console.log(err)
