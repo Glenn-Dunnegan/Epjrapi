@@ -77,7 +77,8 @@ const imgSchema = new Schema({
 const jobSchema = new Schema({
   jobType: {
     type: String,
-    required: true
+    required: true,
+    index: true
   },
   jobTitle: {
     type: String

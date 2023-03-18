@@ -584,7 +584,7 @@ accessRouter.get('/work/search/:searchType/:searchParam', (req, res, next) => {
                     return res.status(200).send(jobs)
                 })
             }else{
-                Job.find({[type]: req.params.searchParam},(err, jobs) => {
+                Job.find({[type]: {$regex:  req.params.searchParam, '$options': 'i'}},(err, jobs) => {
                     if(err){
                       res.status(500)
                       return next(err)
