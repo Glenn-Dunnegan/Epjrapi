@@ -445,7 +445,8 @@ accessRouter.post('/workbyadmin/:forUser', upload.single('imgUrl'), (req, res, n
                     res.status(500)
                     return next(err)
                     }
-                    return res.status(201).send(savedJob)
+                    resMsg = 'Request Submitted'
+                    return res.status(201).send(resMsg)
                 })
             }else{
                 
@@ -486,7 +487,8 @@ accessRouter.post('/workbyadmin/:forUser', upload.single('imgUrl'), (req, res, n
                     res.status(500)
                     return next(err)
                     }
-                    return res.status(201).send(savedJob)
+                    resMsg = 'Request Submitted'
+                    return res.status(201).send(resMsg)
                 })
             }
         }else if(err){
@@ -539,6 +541,33 @@ accessRouter.get('/work', (req, res, next) => {
                 //console.log(myArr)
                 //console.log(jobs)
                 return res.status(200).send(jobs)
+            })
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
+accessRouter.get('/schedulerwork', (req, res, next) => {
+    User.findById(req.auth._id, (err, user) => {
+        if(authCheck(req, user, 'admin', 'strict')){
+            Job.find((err, jobs) => {
+                if(err){
+                  res.status(500)
+                  return next(err)
+                }
+                
+                const filteredJobs = jobs.filter((job)=>
+                    job.status !== 'Rejected'
+                    &&
+                    !job.completedActual
+                    &&
+                    (job.inspectionDate||(job.estimatedStart && job.estimatedFinish))
+                )
+                console.log(filteredJobs)
+                return res.status(200).send(filteredJobs)
             })
         }else if(err){
             console.log(err)
