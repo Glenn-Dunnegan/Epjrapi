@@ -23,7 +23,7 @@ const server = https.createServer(options, app);
 
 const io = new Server(server, {
   cors: {
-    origin: ["https://dirtandseptic.com", "https://www.dirtandseptic.com"],
+    origin: ["https://dirtandseptic.com", "https://www.dirtandseptic.com", "http://localhost:3000"],
     methods: ["GET", "POST"]
   }
 });

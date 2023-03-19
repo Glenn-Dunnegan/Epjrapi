@@ -217,6 +217,34 @@ accessRouter.put('/changepassword/:userID', (req, res, next) => {
         })
 })
 
+accessRouter.put('/updateaddress', (req, res, next) => {
+   
+    User.findById(req.auth._id, (err, user) => {
+        
+        if(authCheck(req, user, 'admin', 'update') || authCheck(req, user, 'member', 'update')){
+            console.log(req.body)
+            user.address = {...req.body.address}
+            if (err){
+                console.log(err);
+            }
+            // user.password = req.body.password
+            // user.tempRequested = false
+            // user.tempPassword = ''
+            user.save(function(err,result){
+                if (err){
+                    console.log(err);
+                }
+            })              
+            const token = jwt.sign(user.withoutPassword(), process.env.SECRET)
+            return res.status(200).send({ token, user: user.withoutPassword()})
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
 // accessRouter.get('/requestpassword/:userEmail', (req, res, next) => {
 //     User.findOneAndUpdate(
 //         {email: req.params.userEmail},
@@ -331,83 +359,90 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
     User.findById(req.auth._id, (err, user) => {
         
         if(authCheck(req, user, 'member', 'strict')){
-            console.log(req.body)
-            if(!req.file){
-                req.body.user = req.auth._id
-                // req.body.imgUrl =  'test'  //req.file.originalname
-                const newJob = new Job({
-                    jobType: req.body.jobType==='Other' ? req.body.altJobType : req.body.jobType,
-                    description: req.body.description,
-                    poc: {
-                        contactFirstName: req.body.contactFirstName,
-                        contactLastName: req.body.contactLastName,
-                        contactPhone: req.body.contactPhone,
-                        contactEmail: req.body.contactEmail
-                    },
-                    jobLocation: {
-                        line1: req.body.line1,
-                        line2: req.body.line2,
-                        city: req.body.city,
-                        state: req.body.state,
-                        zip: req.body.zip
-                    },
-                    user: req.body.user,
-                    submittedByFirstName: req.auth.firstName,
-                    submittedByLastName: req.auth.lastName
-                })
-                newJob.save((err, savedJob) => {
-                    if(err){
-                    res.status(500)
-                    return next(err)
-                    }
-                    resMsg = 'Request Submitted'
-                    return res.status(201).send(resMsg)
-                })
+            if(user.address.line1){
+                if(!req.file){
+                    req.body.user = req.auth._id
+                    // req.body.imgUrl =  'test'  //req.file.originalname
+                    const newJob = new Job({
+                        jobType: req.body.jobType==='Other' ? req.body.altJobType : req.body.jobType,
+                        description: req.body.description,
+                        poc: {
+                            contactFirstName: req.body.contactFirstName,
+                            contactLastName: req.body.contactLastName,
+                            contactPhone: req.body.contactPhone,
+                            contactEmail: req.body.contactEmail
+                        },
+                        jobLocation: {
+                            line1: req.body.line1,
+                            line2: req.body.line2,
+                            city: req.body.city,
+                            state: req.body.state,
+                            zip: req.body.zip
+                        },
+                        user: req.body.user,
+                        submittedByFirstName: req.auth.firstName,
+                        submittedByLastName: req.auth.lastName
+                    })
+                    newJob.save((err, savedJob) => {
+                        if(err){
+                        res.status(500)
+                        return next(err)
+                        }
+                        resMsg = 'Request Submitted'
+                        return res.status(201).send(resMsg)
+                    })
+                }else{
+                    req.body.user = req.auth._id
+                    // req.body.imgUrl =  'test'  //req.file.originalname
+                    const newJob = new Job({
+                        jobType: req.body.jobType==='Other' ? req.body.altJobType : req.body.jobType,
+                        description: req.body.description,
+                        poc: {
+                            contactFirstName: req.body.contactFirstName,
+                            contactLastName: req.body.contactLastName,
+                            contactPhone: req.body.contactPhone,
+                            contactEmail: req.body.contactEmail
+                        },
+                        jobLocation: {
+                            line1: req.body.line1,
+                            line2: req.body.line2,
+                            city: req.body.city,
+                            state: req.body.state,
+                            zip: req.body.zip
+                        },
+                        user: req.body.user,
+                        submittedByFirstName: req.auth.firstName,
+                        submittedByLastName: req.auth.lastName,
+                        img: {
+                            fileName: req.file.originalname,
+                            fileType: req.file.mimetype,
+                            fileSize: req.file.size,
+                            bucketName: req.file.bucketName,
+                            fileID: req.file._id,
+                            savedFileName: req.file.filename
+                        }
+                        
+                    })
+                
+                    newJob.save((err, savedJob) => {
+                        if(err){
+                        res.status(500)
+                        return next(err)
+                        }
+                        resMsg = 'Request Submitted'
+                        return res.status(201).send(resMsg)
+                    })
+                }
+            }else if(err){
+                console.log(err)
             }else{
-                req.body.user = req.auth._id
-                // req.body.imgUrl =  'test'  //req.file.originalname
-                const newJob = new Job({
-                    jobType: req.body.jobType==='Other' ? req.body.altJobType : req.body.jobType,
-                    description: req.body.description,
-                    poc: {
-                        contactFirstName: req.body.contactFirstName,
-                        contactLastName: req.body.contactLastName,
-                        contactPhone: req.body.contactPhone,
-                        contactEmail: req.body.contactEmail
-                    },
-                    jobLocation: {
-                        line1: req.body.line1,
-                        line2: req.body.line2,
-                        city: req.body.city,
-                        state: req.body.state,
-                        zip: req.body.zip
-                    },
-                    user: req.body.user,
-                    submittedByFirstName: req.auth.firstName,
-                    submittedByLastName: req.auth.lastName,
-                    img: {
-                        fileName: req.file.originalname,
-                        fileType: req.file.mimetype,
-                        fileSize: req.file.size,
-                        bucketName: req.file.bucketName,
-                        fileID: req.file._id,
-                        savedFileName: req.file.filename
-                    }
-                    
-                })
-            
-                newJob.save((err, savedJob) => {
-                    if(err){
-                    res.status(500)
-                    return next(err)
-                    }
-                    resMsg = 'Request Submitted'
-                    return res.status(201).send(resMsg)
-                })
+                res.status(500)
+                return next(new Error("Account Address Required"))
             }
         }else if(err){
             console.log(err)
         }else{
+            res.status(500)
             return next(new Error("Not Authorized"))
         }
     })
@@ -566,7 +601,6 @@ accessRouter.get('/schedulerwork', (req, res, next) => {
                     &&
                     (job.inspectionDate||(job.estimatedStart && job.estimatedFinish))
                 )
-                console.log(filteredJobs)
                 return res.status(200).send(filteredJobs)
             })
         }else if(err){
