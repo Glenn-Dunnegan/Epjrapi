@@ -220,8 +220,10 @@ accessRouter.put('/changepassword/:userID', (req, res, next) => {
 accessRouter.put('/updateaddress', (req, res, next) => {
    
     User.findById(req.auth._id, (err, user) => {
-        
+        let was
+        let userName
         if(authCheck(req, user, 'admin', 'update') || authCheck(req, user, 'member', 'update')){
+            was = {...user.address}
             user.address.line1 = req.body.address.line1
             user.address.line2 = (req.body.address.line2 ? req.body.address.line2 : '')
             user.address.city = req.body.address.city
@@ -239,10 +241,72 @@ accessRouter.put('/updateaddress', (req, res, next) => {
                     res.status(500)
                     return next(err);
                 }else{
+                    userName = user.firstName+' '+user.lastName
+                    const newNote = new Note({
+                        madeBy: userName,
+                        fieldChanged: Object.keys(req.body)[0],
+                        changedFrom: was,
+                        changedTo: {...req.body.address},
+                        jobChanged: req.auth._id
+                    })
+                    newNote.save((err, savedNote) => {
+                        if(err){
+                        console.log(err)
+                        }
+                    })
                     const token = jwt.sign(user.withoutPassword(), process.env.SECRET)
                     return res.status(200).send({ token, user: result.withoutPassword()})
                 }
             })             
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
+accessRouter.put('/updateaddressbyadmin/:userID', (req, res, next) => {
+   
+    User.findById(req.auth._id, (err, user) => {
+        
+        if(authCheck(req, user, 'admin', 'update')){
+            let was
+            let userName
+            retrieveUser(req.params.userID, (err, thisUser)=>{
+                was = {...thisUser.address}
+                thisUser.address.line1 = req.body.address.line1
+                thisUser.address.line2 = (req.body.address.line2 ? req.body.address.line2 : '')
+                thisUser.address.city = req.body.address.city
+                thisUser.address.state = req.body.address.state
+                thisUser.address.zip = req.body.address.zip
+            if (err){
+                res.status(500)
+                return next(err);
+            }
+            thisUser.save(function(err, result){
+                if (err){
+                    res.status(500)
+                    return next(err);
+                }else{
+                    userName = user.firstName+' '+user.lastName
+                    const newNote = new Note({
+                        madeBy: userName,
+                        fieldChanged: Object.keys(req.body)[0],
+                        changedFrom: was,
+                        changedTo: {...req.body.address},
+                        jobChanged: req.params.userID
+                    })
+                    newNote.save((err, savedNote) => {
+                        if(err){
+                        console.log(err)
+                        }
+                    })
+                    resMsg = 'Update Successful'
+                    return res.status(200).send(resMsg)
+                }
+            })          
+            })   
         }else if(err){
             console.log(err)
         }else{
@@ -398,7 +462,7 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                         resMsg = 'Request Submitted'
                         return res.status(201).send(resMsg)
                     })
-                }else{
+                }else if(checkFileType(req.file)){
                     req.body.user = req.auth._id
                     // req.body.imgUrl =  'test'  //req.file.originalname
                     const newJob = new Job({
@@ -438,6 +502,9 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                         resMsg = 'Request Submitted'
                         return res.status(201).send(resMsg)
                     })
+                }else{
+                    res.status(500)
+                    return next(new Error("Jpeg or PNG Images Only"))
                 }
             }else if(err){
                 console.log(err)
@@ -453,6 +520,18 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
         }
     })
 })
+
+function checkFileType(file){
+    if(
+        file.mimetype === 'image/jpeg'
+        ||
+        file.mimetype === 'image/png'
+    ){
+        return true
+    }else{
+        return false
+    }
+}
 
 accessRouter.post('/workbyadmin/:forUser', upload.single('imgUrl'), (req, res, next) => {
 
@@ -492,8 +571,7 @@ accessRouter.post('/workbyadmin/:forUser', upload.single('imgUrl'), (req, res, n
                         resMsg = 'Request Submitted'
                         return res.status(201).send(resMsg)
                     })
-                }else{
-                    
+                }else if(checkFileType(req.file)){
                     // req.body.imgUrl =  'test'  //req.file.originalname
                     const newJob = new Job({
                         jobType: req.body.jobType==='Other' ? req.body.altJobType : req.body.jobType,
@@ -524,8 +602,11 @@ accessRouter.post('/workbyadmin/:forUser', upload.single('imgUrl'), (req, res, n
                             savedFileName: req.file.filename
                         }
                     })
+                    
                 
                     newJob.save((err, savedJob) => {
+                        console.log(newJob.img.fileType)
+                        console.log(newJob.img.fileSize)
                         if(err){
                         res.status(500)
                         return next(err)
@@ -533,6 +614,9 @@ accessRouter.post('/workbyadmin/:forUser', upload.single('imgUrl'), (req, res, n
                         resMsg = 'Request Submitted'
                         return res.status(201).send(resMsg)
                     })
+                }else{
+                    res.status(500)
+                    return next(new Error("Jpeg or png images only"))
                 }
             })
         }else if(err){

@@ -28,10 +28,10 @@ const noteSchema = new Schema({
         type: String
     },
     changedFrom:{
-        type: String
+        type: Object || String
     },
     changedTo:{
-        type: String
+        type: Object || String
     },
     pocChangedFrom:{
         type: pocSchema
