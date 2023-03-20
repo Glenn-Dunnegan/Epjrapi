@@ -75,6 +75,9 @@ const imgSchema = new Schema({
 //_id: "633394e96b62827eaba77fe9"
 
 const jobSchema = new Schema({
+  accountEmail:{
+    type: String
+  },
   jobType: {
     type: String,
     required: true,
