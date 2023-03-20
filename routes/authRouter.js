@@ -16,21 +16,27 @@ authRouter.post("/signup", (req,res,next) => {
             res.status(403)
             return next(new Error("That email is already taken"))
         }
-        const newUser = new User(req.body)
-        newUser.access = "member"
-        newUser.isVerified = false,
-        newUser.otp = ''
-        //newUser.verifiedIps.push(IP.address())
-        newUser.save((err, savedUser) => {
-            if(err){
-                res.status(500)
-                return next(err)
-            }
+        if(req.body.password.length >= 8){
+            const newUser = new User(req.body)
+            newUser.access = "member"
+            newUser.isVerified = false,
+            newUser.otp = ''
+            //newUser.verifiedIps.push(IP.address())
+            newUser.save((err, savedUser) => {
+                if(err){
+                    res.status(500)
+                    return next(err)
+                }
 
             //console.log(IP.address())
             const token = jwt.sign(savedUser.withoutPassword(), process.env.SECRET)
             return res.status(201).send({token, user: savedUser.withoutPassword()})
         })
+        }else{
+            res.status(403)
+            return next(new Error("Password must be at least 8 chars"))
+        }
+        
     })
 })
 

@@ -42,7 +42,7 @@ forgotPasswordRouter.put('/requestpassword/:userEmail', (req, res, next) => {
             {email: req.params.userEmail},
             
             {
-                tempPassword: `${Math.floor(100000 + Math.random() * 900000)}`,
+                tempPassword: `${Math.floor(10000000 + Math.random() * 90000000)}`,
                 tempRequested: true
             },
             {new: true},
@@ -67,7 +67,6 @@ forgotPasswordRouter.put('/requestpassword/:userEmail', (req, res, next) => {
                         console.log("Email has been sent!")
                     }
                 })
-                console.log(User)
                 resMsg = 'Email has been sent'
                 if(err){
                     res.status(500)

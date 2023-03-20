@@ -198,17 +198,23 @@ accessRouter.put('/changepassword/:userID', (req, res, next) => {
         User.findById(req.auth._id, (err, user) => {
             
             if(authCheck(req, user, 'admin', 'update') || authCheck(req, user, 'member', 'update')){
+                if(req.body.password.length >= 8){
+                    user.password = req.body.password
+                    user.tempRequested = false
+                    user.tempPassword = ''
+                    user.save(function(err,result){
+                        if (err){
+                            console.log(err);
+                        }
+                    })   
+                    const token = jwt.sign(user.withoutPassword(), process.env.SECRET)
+                    return res.status(200).send({ token, user: user.withoutPassword()})   
+                }else{
+                    res.status(403)
+                    return next(new Error("Password must be at least 8 chars"))
+                }
+                           
                 
-                user.password = req.body.password
-                user.tempRequested = false
-                user.tempPassword = ''
-                user.save(function(err,result){
-                    if (err){
-                        console.log(err);
-                    }
-                })              
-                const token = jwt.sign(user.withoutPassword(), process.env.SECRET)
-                return res.status(200).send({ token, user: user.withoutPassword()})
             }else if(err){
                 console.log(err)
             }else{
