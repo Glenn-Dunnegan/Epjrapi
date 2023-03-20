@@ -222,20 +222,27 @@ accessRouter.put('/updateaddress', (req, res, next) => {
     User.findById(req.auth._id, (err, user) => {
         
         if(authCheck(req, user, 'admin', 'update') || authCheck(req, user, 'member', 'update')){
-            user.address = {...req.body.address}
+            user.address.line1 = req.body.address.line1
+            user.address.line2 = (req.body.address.line2 ? req.body.address.line2 : '')
+            user.address.city = req.body.address.city
+            user.address.state = req.body.address.state
+            user.address.zip = req.body.address.zip
             if (err){
-                console.log(err);
+                res.status(500)
+                return next(err);
             }
             // user.password = req.body.password
             // user.tempRequested = false
             // user.tempPassword = ''
-            user.save(function(err,result){
+            user.save(function(err, result){
                 if (err){
-                    console.log(err);
+                    res.status(500)
+                    return next(err);
+                }else{
+                    const token = jwt.sign(user.withoutPassword(), process.env.SECRET)
+                    return res.status(200).send({ token, user: result.withoutPassword()})
                 }
-            })              
-            const token = jwt.sign(user.withoutPassword(), process.env.SECRET)
-            return res.status(200).send({ token, user: user.withoutPassword()})
+            })             
         }else if(err){
             console.log(err)
         }else{
@@ -422,9 +429,7 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                             fileID: req.file._id,
                             savedFileName: req.file.filename
                         }
-                        
                     })
-                
                     newJob.save((err, savedJob) => {
                         if(err){
                         res.status(500)

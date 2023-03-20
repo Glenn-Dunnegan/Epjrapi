@@ -1,8 +1,8 @@
 
 const express = require('express')
 const app = express()
-const https = require('https')
-//const http = require('http')
+//const https = require('https')
+const http = require('http')
 const fs = require('node:fs');
 require('dotenv').config()
 const morgan = require('morgan')
@@ -13,13 +13,13 @@ const cors = require('cors')
 const upload = multer({ dest : 'uploads/'})
 const { Server } = require("socket.io");
 
-const options = {
-  key: fs.readFileSync('/etc/letsencrypt/live/dirtandseptic.com/privkey.pem'),
-  cert: fs.readFileSync('/etc/letsencrypt/live/dirtandseptic.com/fullchain.pem'),
-};
+// const options = {
+//   key: fs.readFileSync('/etc/letsencrypt/live/dirtandseptic.com/privkey.pem'),
+//   cert: fs.readFileSync('/etc/letsencrypt/live/dirtandseptic.com/fullchain.pem'),
+// };
 
-const server = https.createServer(options, app);
-//const server = http.createServer(app);
+//const server = https.createServer(options, app);
+const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
