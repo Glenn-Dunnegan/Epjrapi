@@ -510,7 +510,7 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                     })
                 }else{
                     res.status(500)
-                    return next(new Error("Jpeg or PNG Images Only"))
+                    return next(new Error("Jpeg, png, or pdf only"))
                 }
             }else if(err){
                 console.log(err)
@@ -532,6 +532,8 @@ function checkFileType(file){
         file.mimetype === 'image/jpeg'
         ||
         file.mimetype === 'image/png'
+        ||
+        file.mimetype === 'application/pdf'
     ){
         return true
     }else{
@@ -622,7 +624,7 @@ accessRouter.post('/workbyadmin/:forUser', upload.single('imgUrl'), (req, res, n
                     })
                 }else{
                     res.status(500)
-                    return next(new Error("Jpeg or png images only"))
+                    return next(new Error("Jpeg, png, or pdf only"))
                 }
             })
         }else if(err){
