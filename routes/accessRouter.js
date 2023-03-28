@@ -460,11 +460,39 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                         submittedByFirstName: req.auth.firstName,
                         submittedByLastName: req.auth.lastName
                     })
+
+                    const details = {
+                        from: `DirtandSeptic <no_reply@dirtandseptic.com>`,
+                        to: `${user.email}`,
+                        cc: `glenn.dunnegan@gmail.com`,
+                        subject: 'Confirmation',
+                        text: `
+                        Request successfully submitted for ${user.email}.
+                        at location: 
+                        ${req.body.line1}
+                        ${req.body.line2 ? req.body.line2 : ''}
+                        ${req.body.city}, ${req.body.state} ${req.body.zip}
+
+                        With Contact To: 
+                        ${req.body.contactFirstName} ${req.body.contactLastName}
+                        contact email: ${req.body.contactEmail}
+                        contact phone: ${req.body.contactPhone}
+                        `
+                    }
+
                     newJob.save((err, savedJob) => {
                         if(err){
                         res.status(500)
                         return next(err)
                         }
+                        mailTransporter.sendMail(details, (err) => {
+                
+                            if(err){
+                                console.log(err)
+                            }else{
+                                console.log("Email has been sent!")
+                            }
+                        })
                         resMsg = 'Request Submitted'
                         return res.status(201).send(resMsg)
                     })
@@ -500,11 +528,39 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                             savedFileName: req.file.filename
                         }
                     })
+
+                    const details = {
+                        from: `DirtandSeptic <no_reply@dirtandseptic.com>`,
+                        to: `${user.email}`,
+                        cc: `glenn.dunnegan@gmail.com`,
+                        subject: 'Confirmation',
+                        text: `
+                        Request successfully submitted for ${user.email}.
+                        at location: 
+                        ${req.body.line1}
+                        ${req.body.line2 ? req.body.line2 : ''}
+                        ${req.body.city}, ${req.body.state} ${req.body.zip}
+
+                        With Contact To: 
+                        ${req.body.contactFirstName} ${req.body.contactLastName}
+                        contact email: ${req.body.contactEmail}
+                        contact phone: ${req.body.contactPhone}
+                        `
+                    }
+
                     newJob.save((err, savedJob) => {
                         if(err){
                         res.status(500)
                         return next(err)
                         }
+                        mailTransporter.sendMail(details, (err) => {
+                
+                            if(err){
+                                console.log(err)
+                            }else{
+                                console.log("Email has been sent!")
+                            }
+                        })
                         resMsg = 'Request Submitted'
                         return res.status(201).send(resMsg)
                     })

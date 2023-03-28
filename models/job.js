@@ -5,18 +5,22 @@ mongoose.set('sanitizeProjection', true)
 const pocSchema = new Schema({
   contactFirstName:{
     type: String,
-    index: true
+    index: true,
+    required: true
   },
   contactLastName:{
     type: String,
-    index: true
+    index: true,
+    required: true
   },
   contactPhone:{
-    type: String
+    type: String,
+    required: true
   },
   contactEmail:{
     type: String,
-    index: true
+    index: true,
+    required: true
   }
 })
 
