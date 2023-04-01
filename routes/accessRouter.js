@@ -464,7 +464,7 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                     const details = {
                         from: `DirtandSeptic <no_reply@dirtandseptic.com>`,
                         to: `${user.email}`,
-                        cc: `glenn.dunnegan@gmail.com`,
+                        bcc: `glenn.dunnegan@gmail.com, rick.dunnegan@yahoo.com`,
                         subject: 'Confirmation',
                         text: `
                         Request successfully submitted for ${user.email}.
