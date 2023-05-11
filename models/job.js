@@ -92,7 +92,8 @@ const jobSchema = new Schema({
   },
   jobLocation: {
     type: addressSchema,
-    required: true
+    required: true,
+    index: true
   },
   description: {
     type: String,

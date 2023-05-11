@@ -441,19 +441,19 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                     // req.body.imgUrl =  'test'  //req.file.originalname
                     const newJob = new Job({
                         jobType: req.body.jobType==='Other' ? req.body.altJobType : req.body.jobType,
-                        description: req.body.description,
+                        description: req.body.description.trim().replace(/  +/g, ' '),
                         poc: {
-                            contactFirstName: req.body.contactFirstName,
-                            contactLastName: req.body.contactLastName,
-                            contactPhone: req.body.contactPhone,
-                            contactEmail: req.body.contactEmail
+                            contactFirstName: req.body.contactFirstName.trim().replace(/  +/g, ' '),
+                            contactLastName: req.body.contactLastName.trim().replace(/  +/g, ' '),
+                            contactPhone: req.body.contactPhone.trim().replace(/  +/g, ' '),
+                            contactEmail: req.body.contactEmail.trim().replace(/  +/g, ' ')
                         },
                         jobLocation: {
-                            line1: req.body.line1,
-                            line2: req.body.line2,
-                            city: req.body.city,
-                            state: req.body.state,
-                            zip: req.body.zip
+                            line1: req.body.line1.trim().replace(/  +/g, ' '),
+                            line2: req.body.line2.trim().replace(/  +/g, ' '),
+                            city: req.body.city.trim().replace(/  +/g, ' '),
+                            state: req.body.state.trim().replace(/  +/g, ' '),
+                            zip: req.body.zip.trim().replace(/  +/g, ' ')
                         },
                         user: req.body.user,
                         accountEmail: user.email,
@@ -464,19 +464,19 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                     const details = {
                         from: `DirtandSeptic <no_reply@dirtandseptic.com>`,
                         to: `${user.email}`,
-                        bcc: `glenn.dunnegan@gmail.com, rick.dunnegan@yahoo.com`,
+                        bcc: `glenn.dunnegan@gmail.com`,
                         subject: 'Confirmation',
                         text: `
                         Request successfully submitted for ${user.email}.
                         at location: 
-                        ${req.body.line1}
-                        ${req.body.line2 ? req.body.line2 : ''}
-                        ${req.body.city}, ${req.body.state} ${req.body.zip}
+                        ${req.body.line1.trim().replace(/  +/g, ' ')}
+                        ${req.body.line2 ? req.body.line2.trim().replace(/  +/g, ' ') : ''}
+                        ${req.body.city.trim().replace(/  +/g, ' ')}, ${req.body.state.trim().replace(/  +/g, ' ')} ${req.body.zip.trim().replace(/  +/g, ' ')}
 
                         With Contact To: 
-                        ${req.body.contactFirstName} ${req.body.contactLastName}
-                        contact email: ${req.body.contactEmail}
-                        contact phone: ${req.body.contactPhone}
+                        ${req.body.contactFirstName.trim().replace(/  +/g, ' ')} ${req.body.contactLastName.trim().replace(/  +/g, ' ')}
+                        contact email: ${req.body.contactEmail.trim().replace(/  +/g, ' ')}
+                        contact phone: ${req.body.contactPhone.trim().replace(/  +/g, ' ')}
                         `
                     }
 
@@ -795,8 +795,17 @@ accessRouter.get('/work/search/:searchType/:searchParam', (req, res, next) => {
         
         if(authCheck(req, user, 'admin', 'strict')){
             const type = req.params.searchType
+            console.log(req.params)
             if(type === 'nested'){
                 Job.find({'poc.contactEmail': {$regex:  req.params.searchParam, '$options': 'i'}},(err, jobs) => {
+                    if(err){
+                      res.status(500)
+                      return next(err)
+                    }
+                    return res.status(200).send(jobs)
+                })
+            }else if(type === 'address'){
+                Job.find({'jobLocation.line1': {$regex:  req.params.searchParam, '$options': 'i'}},(err, jobs) => {
                     if(err){
                       res.status(500)
                       return next(err)
@@ -820,6 +829,30 @@ accessRouter.get('/work/search/:searchType/:searchParam', (req, res, next) => {
                     return res.status(200).send(jobs)
                 })
             }
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
+accessRouter.get('/work/search/:searchType/:searchParam/:addressLine', (req, res, next) => {
+    User.findById(req.auth._id, (err, user) => {
+        
+        if(authCheck(req, user, 'admin', 'strict')){
+            const type = req.params.searchType
+            const searchProp = 'jobLocation.' + req.params.addressLine
+
+            console.log(req.params)
+            console.log(searchProp)
+            
+            Job.find({searchProp: {$regex:  req.params.searchParam, '$options': 'i'}},(err, jobs) => {
+                if(err){
+                  res.status(500)
+                  return next(err)
+                }
+                return res.status(200).send(jobs)
+            })
+            
         }else{
             return next(new Error("Not Authorized"))
         }
