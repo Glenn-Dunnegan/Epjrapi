@@ -172,6 +172,7 @@ accessRouter.get('/userslist/search/:searchType/:searchParam', (req, res, next) 
     User.findById(req.auth._id, (err, user) => {   
         if(authCheck(req, user, 'admin', 'strict')){
             const type = req.params.searchType
+            console.log(type)
             User.find({
                 //'poc.contactFirstName': {$regex:  req.params.pocFirstName, '$options': 'i'},
                 //$text: {$search: req.params.pocFirstName},
@@ -187,6 +188,50 @@ accessRouter.get('/userslist/search/:searchType/:searchParam', (req, res, next) 
                 )
                 return res.status(200).send(userList)
             })
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
+accessRouter.get('/userslist/search/:searchType/:searchParam/:addressLine', (req, res, next) => {
+    User.findById(req.auth._id, (err, user) => {   
+        if(authCheck(req, user, 'admin', 'strict')){
+            if(req.params.addressLine === 'line1'){
+                User.find({'address.line1': {$regex:  req.params.searchParam.trim().replace(/  +/g, ' '), '$options': 'i'}},(err, jobs) => {
+                    if(err){
+                    res.status(500)
+                    return next(err)
+                    }
+                    return res.status(200).send(jobs)
+                })
+            }else if(req.params.addressLine === 'city'){
+                User.find({'address.city': {$regex:  req.params.searchParam.trim().replace(/  +/g, ' '), '$options': 'i'}},(err, jobs) => {
+                    if(err){
+                    res.status(500)
+                    return next(err)
+                    }
+                    return res.status(200).send(jobs)
+                })
+            }else if(req.params.addressLine === 'state'){
+                User.find({'address.state': {$regex:  req.params.searchParam.trim().replace(/  +/g, ' '), '$options': 'i'}},(err, jobs) => {
+                    if(err){
+                    res.status(500)
+                    return next(err)
+                    }
+                    return res.status(200).send(jobs)
+                })
+            }else if(req.params.addressLine === 'zip'){
+                User.find({'address.zip': {$regex:  req.params.searchParam.trim().replace(/  +/g, ' '), '$options': 'i'}},(err, jobs) => {
+                    if(err){
+                    res.status(500)
+                    return next(err)
+                    }
+                    return res.status(200).send(jobs)
+                })
+            }else{
+                return next(new Error("Improper Parameter"))
+            }
         }else{
             return next(new Error("Not Authorized"))
         }
@@ -230,11 +275,11 @@ accessRouter.put('/updateaddress', (req, res, next) => {
         let userName
         if(authCheck(req, user, 'admin', 'update') || authCheck(req, user, 'member', 'update')){
             was = {...user.address}
-            user.address.line1 = req.body.address.line1
-            user.address.line2 = (req.body.address.line2 ? req.body.address.line2 : '')
-            user.address.city = req.body.address.city
-            user.address.state = req.body.address.state
-            user.address.zip = req.body.address.zip
+            user.address.line1 = req.body.address.line1.trim().replace(/  +/g, ' ')
+            user.address.line2 = (req.body.address.line2 ? req.body.address.line2.trim().replace(/  +/g, ' ') : '')
+            user.address.city = req.body.address.city.trim().replace(/  +/g, ' ')
+            user.address.state = req.body.address.state.trim().replace(/  +/g, ' ')
+            user.address.zip = req.body.address.zip.trim().replace(/  +/g, ' ')
             if (err){
                 res.status(500)
                 return next(err);
@@ -281,11 +326,11 @@ accessRouter.put('/updateaddressbyadmin/:userID', (req, res, next) => {
             let userName
             retrieveUser(req.params.userID, (err, thisUser)=>{
                 was = {...thisUser.address}
-                thisUser.address.line1 = req.body.address.line1
-                thisUser.address.line2 = (req.body.address.line2 ? req.body.address.line2 : '')
-                thisUser.address.city = req.body.address.city
-                thisUser.address.state = req.body.address.state
-                thisUser.address.zip = req.body.address.zip
+                thisUser.address.line1 = req.body.address.line1.trim().replace(/  +/g, ' ')
+                thisUser.address.line2 = (req.body.address.line2 ? req.body.address.line2.trim().replace(/  +/g, ' ') : '')
+                thisUser.address.city = req.body.address.city.trim().replace(/  +/g, ' ')
+                thisUser.address.state = req.body.address.state.trim().replace(/  +/g, ' ')
+                thisUser.address.zip = req.body.address.zip.trim().replace(/  +/g, ' ')
             if (err){
                 res.status(500)
                 return next(err);
@@ -503,17 +548,17 @@ accessRouter.post('/work', upload.single('imgUrl'), (req, res, next) => {
                         jobType: req.body.jobType==='Other' ? req.body.altJobType : req.body.jobType,
                         description: req.body.description,
                         poc: {
-                            contactFirstName: req.body.contactFirstName,
-                            contactLastName: req.body.contactLastName,
-                            contactPhone: req.body.contactPhone,
-                            contactEmail: req.body.contactEmail
+                            contactFirstName: req.body.contactFirstName.trim().replace(/  +/g, ' '),
+                            contactLastName: req.body.contactLastName.trim().replace(/  +/g, ' '),
+                            contactPhone: req.body.contactPhone.trim().replace(/  +/g, ' '),
+                            contactEmail: req.body.contactEmail.trim().replace(/  +/g, ' ')
                         },
                         jobLocation: {
-                            line1: req.body.line1,
-                            line2: req.body.line2,
-                            city: req.body.city,
-                            state: req.body.state,
-                            zip: req.body.zip
+                            line1: req.body.line1.trim().replace(/  +/g, ' '),
+                            line2: req.body.line2.trim().replace(/  +/g, ' '),
+                            city: req.body.city.trim().replace(/  +/g, ' '),
+                            state: req.body.state.trim().replace(/  +/g, ' '),
+                            zip: req.body.zip.trim().replace(/  +/g, ' ')
                         },
                         user: req.body.user,
                         accountEmail: user.email,
@@ -610,17 +655,17 @@ accessRouter.post('/workbyadmin/:forUser', upload.single('imgUrl'), (req, res, n
                         jobType: req.body.jobType==='Other' ? req.body.altJobType : req.body.jobType,
                         description: req.body.description,
                         poc: {
-                            contactFirstName: req.body.contactFirstName,
-                            contactLastName: req.body.contactLastName,
-                            contactPhone: req.body.contactPhone,
-                            contactEmail: req.body.contactEmail
+                            contactFirstName: req.body.contactFirstName.trim().replace(/  +/g, ' '),
+                            contactLastName: req.body.contactLastName.trim().replace(/  +/g, ' '),
+                            contactPhone: req.body.contactPhone.trim().replace(/  +/g, ' '),
+                            contactEmail: req.body.contactEmail.trim().replace(/  +/g, ' ')
                         },
                         jobLocation: {
-                            line1: req.body.line1,
-                            line2: req.body.line2,
-                            city: req.body.city,
-                            state: req.body.state,
-                            zip: req.body.zip
+                            line1: req.body.line1.trim().replace(/  +/g, ' '),
+                            line2: req.body.line2.trim().replace(/  +/g, ' '),
+                            city: req.body.city.trim().replace(/  +/g, ' '),
+                            state: req.body.state.trim().replace(/  +/g, ' '),
+                            zip: req.body.zip.trim().replace(/  +/g, ' ')
                         },
                         user: req.params.forUser,
                         accountEmail: accountEmail,
@@ -797,15 +842,7 @@ accessRouter.get('/work/search/:searchType/:searchParam', (req, res, next) => {
             const type = req.params.searchType
             console.log(req.params)
             if(type === 'nested'){
-                Job.find({'poc.contactEmail': {$regex:  req.params.searchParam, '$options': 'i'}},(err, jobs) => {
-                    if(err){
-                      res.status(500)
-                      return next(err)
-                    }
-                    return res.status(200).send(jobs)
-                })
-            }else if(type === 'address'){
-                Job.find({'jobLocation.line1': {$regex:  req.params.searchParam, '$options': 'i'}},(err, jobs) => {
+                Job.find({'poc.contactEmail': {$regex:  req.params.searchParam.trim().replace(/  +/g, ' '), '$options': 'i'}},(err, jobs) => {
                     if(err){
                       res.status(500)
                       return next(err)
@@ -821,7 +858,7 @@ accessRouter.get('/work/search/:searchType/:searchParam', (req, res, next) => {
                     return res.status(200).send(jobs)
                 })
             }else{
-                Job.find({[type]: {$regex:  req.params.searchParam, '$options': 'i'}},(err, jobs) => {
+                Job.find({[type]: {$regex:  req.params.searchParam.trim().replace(/  +/g, ' '), '$options': 'i'}},(err, jobs) => {
                     if(err){
                       res.status(500)
                       return next(err)
@@ -839,19 +876,43 @@ accessRouter.get('/work/search/:searchType/:searchParam/:addressLine', (req, res
     User.findById(req.auth._id, (err, user) => {
         
         if(authCheck(req, user, 'admin', 'strict')){
-            const type = req.params.searchType
-            const searchProp = 'jobLocation.' + req.params.addressLine
-
-            console.log(req.params)
-            console.log(searchProp)
             
-            Job.find({searchProp: {$regex:  req.params.searchParam, '$options': 'i'}},(err, jobs) => {
-                if(err){
-                  res.status(500)
-                  return next(err)
-                }
-                return res.status(200).send(jobs)
-            })
+            //let dynamicRegEx = new RegExp(`jobLocation.${req.params.addressLine}`)
+            if(req.params.addressLine === 'line1'){
+                Job.find({'jobLocation.line1': {$regex:  req.params.searchParam.trim().replace(/  +/g, ' '), '$options': 'i'}},(err, jobs) => {
+                    if(err){
+                    res.status(500)
+                    return next(err)
+                    }
+                    return res.status(200).send(jobs)
+                })
+            }else if(req.params.addressLine === 'city'){
+                Job.find({'jobLocation.city': {$regex:  req.params.searchParam.trim().replace(/  +/g, ' '), '$options': 'i'}},(err, jobs) => {
+                    if(err){
+                    res.status(500)
+                    return next(err)
+                    }
+                    return res.status(200).send(jobs)
+                })
+            }else if(req.params.addressLine === 'state'){
+                Job.find({'jobLocation.state': {$regex:  req.params.searchParam.trim().replace(/  +/g, ' '), '$options': 'i'}},(err, jobs) => {
+                    if(err){
+                    res.status(500)
+                    return next(err)
+                    }
+                    return res.status(200).send(jobs)
+                })
+            }else if(req.params.addressLine === 'zip'){
+                Job.find({'jobLocation.zip': {$regex:  req.params.searchParam.trim().replace(/  +/g, ' '), '$options': 'i'}},(err, jobs) => {
+                    if(err){
+                    res.status(500)
+                    return next(err)
+                    }
+                    return res.status(200).send(jobs)
+                })
+            }else{
+                return next(new Error("Improper Parameter"))
+            }
             
         }else{
             return next(new Error("Not Authorized"))

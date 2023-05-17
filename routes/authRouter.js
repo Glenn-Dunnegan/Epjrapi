@@ -17,7 +17,23 @@ authRouter.post("/signup", (req,res,next) => {
             return next(new Error("That email is already taken"))
         }
         if(req.body.password.length >= 8){
-            const newUser = new User(req.body)
+             console.log(req.body)
+            // const trimmedReq = Object.keys(req.body).map(k => req.body[k] = typeof req.body[k] == 'string' ? req.body[k].trim().replace(/  +/g, ' ') : req.body[k])
+            // console.log(trimmedReq)
+            //.trim().replace(/  +/g, ' ')
+            const newUser = new User({
+                email: req.body.email.trim().replace(/  +/g, ' '),
+                password: req.body.password.trim().replace(/  +/g, ' '),
+                firstName: req.body.firstName.trim().replace(/  +/g, ' '),
+                lastName: req.body.lastName.trim().replace(/  +/g, ' '),
+                address: {
+                    line1: req.body.address.line1.trim().replace(/  +/g, ' '),
+                    line2: req.body.address.line2.trim().replace(/  +/g, ' '),
+                    city: req.body.address.city.trim().replace(/  +/g, ' '),
+                    state: req.body.address.state.trim().replace(/  +/g, ' ').toUpperCase(),
+                    zip: req.body.address.zip.trim().replace(/  +/g, ' ')
+                }
+            })
             newUser.access = "member"
             newUser.isVerified = false,
             newUser.otp = ''

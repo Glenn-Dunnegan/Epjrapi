@@ -41,7 +41,7 @@ const addressSchema = new Schema({
         required: true
     },
     zip:{
-        type: Number,
+        type: String,
         required: true
     }
 })
