@@ -1253,4 +1253,16 @@ accessRouter.post('/createuser', (req, res, next)=>{
     })
 })
 
+accessRouter.post('/addtolom/:jobID', (req, res, next)=>{
+    User.findById(req.auth._id, (err, user) => {
+        if(authCheck(req, user, 'admin', 'strict')){
+            console.log(req.body)
+        }else{
+            res.status(500)
+            console.log(err)
+            return next(err)
+        }
+    })
+})
+
 module.exports = accessRouter
