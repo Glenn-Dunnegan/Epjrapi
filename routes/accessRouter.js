@@ -4,6 +4,7 @@ require('dotenv').config()
 const User = require('../models/user.js')
 const Job = require('../models/job.js')
 const Note = require('../models/note.js')
+const Lom = require('../models/lom.js')
 const jwt = require('jsonwebtoken')
 const multer = require('multer')
 const path = require('path')
@@ -1256,7 +1257,40 @@ accessRouter.post('/createuser', (req, res, next)=>{
 accessRouter.post('/addtolom/:jobID', (req, res, next)=>{
     User.findById(req.auth._id, (err, user) => {
         if(authCheck(req, user, 'admin', 'strict')){
-            console.log(req.body)
+            Lom.findOne({forJob: req.params.jobID}, (err, lom) => {
+                if(err){
+                    res.status(500)
+                    return next(err)
+                }
+                if(lom){
+                    //push here
+                    console.log(req.body)
+                    lom.list.push(req.body)
+                    lom.save()
+                    //Lom.updateOne({_id: lom._id}, { $push: { list: req.body} })
+                    console.log('lom exists')
+                    //console.log(lom)
+                }
+                if(!lom){
+                    console.log(req.body)
+                const newLom = new Lom(
+                    {
+                        forJob: req.params.jobID
+                    }
+                )
+                newLom.list.push(req.body)
+                newLom.save((err, savedLom) => {
+                    if(err){
+                        res.status(500)
+                        return next(err)
+                    }
+                    return res.status(201).send('List Created')
+                })
+                }
+            })
+            
+            
+            console.log(req.params.jobID)
         }else{
             res.status(500)
             console.log(err)

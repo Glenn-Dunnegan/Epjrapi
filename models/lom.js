@@ -20,7 +20,7 @@ const lomSchema = new Schema({
     list:{
         type: [matSchema]
     },
-    dateChanged:{
+    dateCreated:{
         type: Date,
         default: Date.now
     },
