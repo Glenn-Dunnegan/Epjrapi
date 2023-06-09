@@ -1254,6 +1254,24 @@ accessRouter.post('/createuser', (req, res, next)=>{
     })
 })
 
+accessRouter.get('/getlom/:jobID', (req, res, next) => {
+    User.findById(req.auth._id, (err, user) => {
+        if(authCheck(req, user, 'admin', 'strict')){
+            Lom.find({ forJob: req.params.jobID }, (err, lom) => {
+                if(err){
+                    res.status(500)
+                    return next(err)
+                }
+                return res.status(200).send(lom)
+            })
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
 accessRouter.post('/addtolom/:jobID', (req, res, next)=>{
     User.findById(req.auth._id, (err, user) => {
         if(authCheck(req, user, 'admin', 'strict')){
