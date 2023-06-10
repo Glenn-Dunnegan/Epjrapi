@@ -1281,13 +1281,14 @@ accessRouter.post('/addtolom/:jobID', (req, res, next)=>{
                     return next(err)
                 }
                 if(lom){
-                    //push here
-                    console.log(req.body)
                     lom.list.push(req.body)
-                    lom.save()
-                    //Lom.updateOne({_id: lom._id}, { $push: { list: req.body} })
-                    console.log('lom exists')
-                    //console.log(lom)
+                    lom.save((err, savedLom) => {
+                        if(err){
+                            res.status(500)
+                            return next(err)
+                        }
+                        return res.status(201).send(savedLom.list[savedLom.list.length - 1])
+                    })
                 }
                 if(!lom){
                     console.log(req.body)
@@ -1302,7 +1303,7 @@ accessRouter.post('/addtolom/:jobID', (req, res, next)=>{
                         res.status(500)
                         return next(err)
                     }
-                    return res.status(201).send('List Created')
+                    return res.status(201).send(savedLom.list[savedLom.list.length - 1])
                 })
                 }
             })
