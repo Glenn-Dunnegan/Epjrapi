@@ -1042,6 +1042,7 @@ accessRouter.get('/userworkbyadmin/:userID', (req,res,next) => {
 accessRouter.get('/notes/:refID/:skipAmount', (req,res,next) => {
     User.findById(req.auth._id, (err, user) => {
         if(authCheck(req, user, 'admin', 'strict') ){
+            console.log('yes')
             Note.find({ jobChanged: req.params.refID }, (err, notes) => {
                 if(err){
                     res.status(500)
@@ -1287,6 +1288,21 @@ accessRouter.post('/addtolom/:jobID', (req, res, next)=>{
                             res.status(500)
                             return next(err)
                         }
+                        retrieveUser(req.auth._id, (err, thisUser)=>{
+                            userName = thisUser.firstName+' '+thisUser.lastName
+                            const newNote = new Note({
+                                madeBy: userName,
+                                addedNote: `Added ${req.body.material} ${req.body.matCount} ${req.body.matUnit}`,
+                                jobChanged: savedLom._id
+                            })
+                            newNote.save((err, savedNote) => {
+                                if(err){
+                                res.status(500)
+                                return next(err)
+                                }
+                                console.log(savedNote)
+                            })
+                        })
                         return res.status(201).send(savedLom.list[savedLom.list.length - 1])
                     })
                 }
@@ -1303,8 +1319,69 @@ accessRouter.post('/addtolom/:jobID', (req, res, next)=>{
                         res.status(500)
                         return next(err)
                     }
+                    retrieveUser(req.auth._id, (err, thisUser)=>{
+                        userName = thisUser.firstName+' '+thisUser.lastName
+                        const newNote = new Note({
+                            madeBy: userName,
+                            addedNote: `Added ${req.body.material} ${req.body.matCount} ${req.body.matUnit}`,
+                            jobChanged: savedLom._id
+                        })
+                        newNote.save((err, savedNote) => {
+                            if(err){
+                            res.status(500)
+                            return next(err)
+                            }
+                        })
+                    })
                     return res.status(201).send(savedLom.list[savedLom.list.length - 1])
                 })
+                }
+            })
+            
+            
+            console.log(req.params.jobID)
+        }else{
+            res.status(500)
+            console.log(err)
+            return next(err)
+        }
+    })
+})
+
+accessRouter.delete('/deletefromlom/:jobID/:index', (req, res, next)=>{
+    User.findById(req.auth._id, (err, user) => {
+        if(authCheck(req, user, 'admin', 'strict')){
+            Lom.findOne({forJob: req.params.jobID}, (err, lom) => {
+                if(err){
+                    res.status(500)
+                    return next(err)
+                }
+                if(lom){
+                    str = `${lom.list[req.params.index].material} ${lom.list[req.params.index].matCount} ${lom.list[req.params.index].matUnit}`
+                    retrieveUser(req.auth._id, (err, thisUser)=>{
+                        console.log(lom.list)
+                        userName = thisUser.firstName+' '+thisUser.lastName
+                        const newNote = new Note({
+                            madeBy: userName,
+                            addedNote: `Deleted ${str}`,
+                            jobChanged: lom._id
+                        })
+                        newNote.save((err, savedNote) => {
+                            if(err){
+                            res.status(500)
+                            return next(err)
+                            }
+                            console.log(savedNote)
+                        })
+                    })
+                    lom.list.splice(req.params.index, 1)
+                    lom.save((err, savedLom) => {
+                        if(err){
+                            res.status(500)
+                            return next(err)
+                        }
+                        return res.status(201).send('Successfully Deleted')
+                    })
                 }
             })
             
