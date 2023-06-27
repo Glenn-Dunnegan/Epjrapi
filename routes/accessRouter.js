@@ -839,7 +839,7 @@ accessRouter.get('/work/byDate/:from/:to', (req, res, next) => {
 accessRouter.get('/work/search/:searchType/:searchParam', (req, res, next) => {
     User.findById(req.auth._id, (err, user) => {
         
-        if(authCheck(req, user, 'admin', 'strict')){
+        if(authCheck(req, user, 'admin', 'strict') || authCheck(req, user, 'field tech', 'strict')){
             const type = req.params.searchType
             console.log(req.params)
             if(type === 'nested'){
@@ -1041,6 +1041,25 @@ accessRouter.get('/userworkbyadmin/:userID', (req,res,next) => {
 
 accessRouter.get('/notes/:refID/:skipAmount', (req,res,next) => {
     User.findById(req.auth._id, (err, user) => {
+        if(authCheck(req, user, 'admin', 'strict')){
+            console.log('yes')
+            Note.find({ jobChanged: req.params.refID }, (err, notes) => {
+                if(err){
+                    res.status(500)
+                    return next(err)
+                }
+                return res.status(200).send(notes)
+            }).sort({ dateChanged: -1 }).skip(req.params.skipAmount).limit(5)
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
+accessRouter.get('/lomnotes/:refID/:skipAmount', (req,res,next) => {
+    User.findById(req.auth._id, (err, user) => {
         if(authCheck(req, user, 'admin', 'strict') || authCheck(req, user, 'field tech', 'strict')){
             console.log('yes')
             Note.find({ jobChanged: req.params.refID }, (err, notes) => {
@@ -1082,6 +1101,36 @@ function retrieveUser(userID, callback){
 accessRouter.post('/notes/addnote/:refID', (req,res,next)=>{
     User.findById(req.auth._id, (err, user) => {
         if(authCheck(req, user, 'admin', 'strict')){
+            retrieveUser(req.auth._id, (err, thisUser)=>{
+                userName = thisUser.firstName+' '+thisUser.lastName
+                const newNote = new Note({
+                    madeBy: userName,
+                    addedNote: req.body.addedNote,
+                    jobChanged: req.params.refID
+                })
+                newNote.save((err, savedNote) => {
+                    if(err){
+                    res.status(500)
+                    return next(err)
+                    }
+                    res.status(201).send(savedNote)
+                })
+                if(err){
+                    res.status(500)
+                    return next(err)
+                }
+            })
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
+accessRouter.post('/lomnotes/addnote/:refID', (req,res,next)=>{
+    User.findById(req.auth._id, (err, user) => {
+        if(authCheck(req, user, 'admin', 'strict') || authCheck(req, user, 'field tech', 'strict')){
             retrieveUser(req.auth._id, (err, thisUser)=>{
                 userName = thisUser.firstName+' '+thisUser.lastName
                 const newNote = new Note({
