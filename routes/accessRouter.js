@@ -876,7 +876,7 @@ accessRouter.get('/work/search/:searchType/:searchParam', (req, res, next) => {
 accessRouter.get('/work/search/:searchType/:searchParam/:addressLine', (req, res, next) => {
     User.findById(req.auth._id, (err, user) => {
         
-        if(authCheck(req, user, 'admin', 'strict')){
+        if(authCheck(req, user, 'admin', 'strict') || authCheck(req, user, 'field tech', 'strict')){
             
             //let dynamicRegEx = new RegExp(`jobLocation.${req.params.addressLine}`)
             if(req.params.addressLine === 'line1'){
@@ -923,7 +923,7 @@ accessRouter.get('/work/search/:searchType/:searchParam/:addressLine', (req, res
 
 accessRouter.get('/work/searchByName/:pocFirstName/:pocLastName', (req, res, next) => {
     User.findById(req.auth._id, (err, user) => {   
-        if(authCheck(req, user, 'admin', 'strict')){
+        if(authCheck(req, user, 'admin', 'strict') || authCheck(req, user, 'field tech', 'strict')){
             Job.find({
                 'poc.contactFirstName': {$regex:  req.params.pocFirstName, '$options': 'i'},
                 //$text: {$search: req.params.pocFirstName},
@@ -944,7 +944,7 @@ accessRouter.get('/work/searchByName/:pocFirstName/:pocLastName', (req, res, nex
 
 accessRouter.get('/work/searchByLastName/:pocLastName', (req, res, next) => {
     User.findById(req.auth._id, (err, user) => {   
-        if(authCheck(req, user, 'admin', 'strict')){
+        if(authCheck(req, user, 'admin', 'strict') || authCheck(req, user, 'field tech', 'strict')){
             let resLength
             Job.find({
                 //'poc.contactFirstName': {$regex:  req.params.pocFirstName, '$options': 'i'},
@@ -1041,7 +1041,7 @@ accessRouter.get('/userworkbyadmin/:userID', (req,res,next) => {
 
 accessRouter.get('/notes/:refID/:skipAmount', (req,res,next) => {
     User.findById(req.auth._id, (err, user) => {
-        if(authCheck(req, user, 'admin', 'strict') ){
+        if(authCheck(req, user, 'admin', 'strict') || authCheck(req, user, 'field tech', 'strict')){
             console.log('yes')
             Note.find({ jobChanged: req.params.refID }, (err, notes) => {
                 if(err){
@@ -1257,7 +1257,7 @@ accessRouter.post('/createuser', (req, res, next)=>{
 
 accessRouter.get('/getlom/:jobID', (req, res, next) => {
     User.findById(req.auth._id, (err, user) => {
-        if(authCheck(req, user, 'admin', 'strict')){
+        if(authCheck(req, user, 'admin', 'strict') || authCheck(req, user, 'field tech', 'strict')){
             Lom.find({ forJob: req.params.jobID }, (err, lom) => {
                 if(err){
                     res.status(500)
@@ -1275,7 +1275,7 @@ accessRouter.get('/getlom/:jobID', (req, res, next) => {
 
 accessRouter.post('/addtolom/:jobID', (req, res, next)=>{
     User.findById(req.auth._id, (err, user) => {
-        if(authCheck(req, user, 'admin', 'strict')){
+        if(authCheck(req, user, 'admin', 'strict') || authCheck(req, user, 'field tech', 'strict')){
             Lom.findOne({forJob: req.params.jobID}, (err, lom) => {
                 if(err){
                     res.status(500)
@@ -1350,7 +1350,7 @@ accessRouter.post('/addtolom/:jobID', (req, res, next)=>{
 
 accessRouter.delete('/deletefromlom/:jobID/:index', (req, res, next)=>{
     User.findById(req.auth._id, (err, user) => {
-        if(authCheck(req, user, 'admin', 'strict')){
+        if(authCheck(req, user, 'admin', 'strict') || authCheck(req, user, 'field tech', 'strict')){
             Lom.findOne({forJob: req.params.jobID}, (err, lom) => {
                 if(err){
                     res.status(500)
