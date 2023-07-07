@@ -75,7 +75,6 @@ function authCheck(request, user, accessLevel, checkType){
 
 // get users list
 accessRouter.get("/userslist", (req, res, next) => {
-
     User.findById(req.auth._id, (err, user) => {
         if(authCheck(req, user, 'admin', 'strict')){
             User.find((err, users) => {
@@ -1440,6 +1439,32 @@ accessRouter.delete('/deletefromlom/:jobID/:index', (req, res, next)=>{
             res.status(500)
             console.log(err)
             return next(err)
+        }
+    })
+})
+
+accessRouter.get("/membersList", (req, res, next) => {
+    User.findById(req.auth._id, (err, user) => {
+        if(authCheck(req, user, 'admin', 'strict')){
+            User.find((err, users) => {
+                
+                if(err){
+                res.status(500)
+                return next(err)
+                }
+        
+                const userList = users.map((user)=>
+                user = user.withoutPassword()
+                )
+
+                const members = userList.filter(user => user.access === 'field tech')
+        
+                return res.status(200).send(members)
+            })
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
         }
     })
 })

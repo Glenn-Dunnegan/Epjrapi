@@ -24,6 +24,13 @@ const pocSchema = new Schema({
   }
 })
 
+const assignedFieldTechSchema = new Schema({
+  fieldTechID: {
+      type: String,
+      required: true
+  }
+})
+
 const addressSchema = new Schema({
     line1:{
         type: String,
@@ -146,8 +153,10 @@ const jobSchema = new Schema({
   },
   actualCost: {
     type: Number
+  },
+  assignmentList: {
+    type: [assignedFieldTechSchema]
   }
-
 })
 
 module.exports = mongoose.model("Job", jobSchema)
