@@ -1449,17 +1449,51 @@ accessRouter.get("/membersList", (req, res, next) => {
             User.find((err, users) => {
                 
                 if(err){
-                res.status(500)
-                return next(err)
+                    res.status(500)
+                    return next(err)
                 }
         
                 const userList = users.map((user)=>
-                user = user.withoutPassword()
+                    user = user.withoutPassword()
                 )
 
                 const members = userList.filter(user => user.access === 'field tech')
         
                 return res.status(200).send(members)
+            })
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
+accessRouter.post("/membersList/assignMember/:jobID/:userID", (req, res, next) => {
+    User.findById(req.auth._id, (err, user) => {
+        if(authCheck(req, user, 'admin', 'strict')){
+            User.findById(req.params.userID, (err, userToAssign) => {
+                if(err){
+                    res.status(500)
+                    return next(err)
+                }
+                Job.findById(req.params.jobID, (err, job) => {
+                
+                    if(err){
+                        res.status(500)
+                        return next(err)
+                    }
+
+                    job.assignmentList.push(`${userToAssign.firstName} ${userToAssign.lastName}`)
+                    job.save((err, savedJob) => {
+                        if(err){
+                            res.status(500)
+                            return next(err)
+                        }
+                        return res.status(200).send(savedJob.assignmentList)
+                    })
+                })
+
             })
         }else if(err){
             console.log(err)
