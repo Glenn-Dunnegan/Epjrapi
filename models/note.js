@@ -39,6 +39,12 @@ const noteSchema = new Schema({
     pocChangedTo:{
         type: pocSchema
     },
+    memberAdded: {
+        type: String
+    },
+    memberRemoved: {
+        type: String
+    },
     addedNote:{
         type: String
     },

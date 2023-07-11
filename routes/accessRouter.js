@@ -1042,7 +1042,6 @@ accessRouter.get('/userworkbyadmin/:userID', (req,res,next) => {
 accessRouter.get('/notes/:refID/:skipAmount', (req,res,next) => {
     User.findById(req.auth._id, (err, user) => {
         if(authCheck(req, user, 'admin', 'strict')){
-            console.log('yes')
             Note.find({ jobChanged: req.params.refID }, (err, notes) => {
                 if(err){
                     res.status(500)
@@ -1061,7 +1060,6 @@ accessRouter.get('/notes/:refID/:skipAmount', (req,res,next) => {
 accessRouter.get('/lomnotes/:refID/:skipAmount', (req,res,next) => {
     User.findById(req.auth._id, (err, user) => {
         if(authCheck(req, user, 'admin', 'strict') || authCheck(req, user, 'field tech', 'strict')){
-            console.log('yes')
             Note.find({ jobChanged: req.params.refID }, (err, notes) => {
                 if(err){
                     res.status(500)
@@ -1105,7 +1103,7 @@ accessRouter.post('/notes/addnote/:refID', (req,res,next)=>{
                 userName = thisUser.firstName+' '+thisUser.lastName
                 const newNote = new Note({
                     madeBy: userName,
-                    addedNote: req.body.addedNote,
+                    addedNote: req.body.addedNote.trim().replace(/  +/g, ' '),
                     jobChanged: req.params.refID
                 })
                 newNote.save((err, savedNote) => {
@@ -1135,7 +1133,7 @@ accessRouter.post('/lomnotes/addnote/:refID', (req,res,next)=>{
                 userName = thisUser.firstName+' '+thisUser.lastName
                 const newNote = new Note({
                     madeBy: userName,
-                    addedNote: req.body.addedNote,
+                    addedNote: req.body.addedNote.trim().replace(/  +/g, ' '),
                     jobChanged: req.params.refID
                 })
                 newNote.save((err, savedNote) => {
@@ -1351,14 +1349,12 @@ accessRouter.post('/addtolom/:jobID', (req, res, next)=>{
                                         res.status(500)
                                         return next(err)
                                         }
-                                        console.log(savedNote)
                                     })
                                 })
                                 return res.status(201).send(savedLom.list[savedLom.list.length - 1])
                             })
                         }
                         if(!lom){
-                            console.log(req.body)
                         const newLom = new Lom(
                             {
                                 forJob: req.params.jobID
@@ -1403,42 +1399,46 @@ accessRouter.post('/addtolom/:jobID', (req, res, next)=>{
 accessRouter.delete('/deletefromlom/:jobID/:index', (req, res, next)=>{
     User.findById(req.auth._id, (err, user) => {
         if(authCheck(req, user, 'admin', 'strict') || authCheck(req, user, 'field tech', 'strict')){
-            Lom.findOne({forJob: req.params.jobID}, (err, lom) => {
-                if(err){
-                    res.status(500)
-                    return next(err)
-                }
-                if(lom){
-                    str = `${lom.list[req.params.index].material} ${lom.list[req.params.index].matCount} ${lom.list[req.params.index].matUnit}`
-                    retrieveUser(req.auth._id, (err, thisUser)=>{
-                        console.log(lom.list)
-                        userName = thisUser.firstName+' '+thisUser.lastName
-                        const newNote = new Note({
-                            madeBy: userName,
-                            addedNote: `Deleted ${str}`,
-                            jobChanged: lom._id
-                        })
-                        newNote.save((err, savedNote) => {
-                            if(err){
-                            res.status(500)
-                            return next(err)
-                            }
-                            console.log(savedNote)
-                        })
-                    })
-                    lom.list.splice(req.params.index, 1)
-                    lom.save((err, savedLom) => {
+
+            Job.findById(req.params.jobID, (err, job) => {
+                if(user.access === 'admin'|| user.access === 'field tech' && job.assignmentList.includes(`${user.firstName} ${user.lastName}`)){
+                    Lom.findOne({forJob: req.params.jobID}, (err, lom) => {
                         if(err){
                             res.status(500)
                             return next(err)
                         }
-                        return res.status(201).send('Successfully Deleted')
+                        if(lom){
+                            str = `${lom.list[req.params.index].material} ${lom.list[req.params.index].matCount} ${lom.list[req.params.index].matUnit}`
+                            retrieveUser(req.auth._id, (err, thisUser)=>{
+                                console.log(lom.list)
+                                userName = thisUser.firstName+' '+thisUser.lastName
+                                const newNote = new Note({
+                                    madeBy: userName,
+                                    addedNote: `Deleted ${str}`,
+                                    jobChanged: lom._id
+                                })
+                                newNote.save((err, savedNote) => {
+                                    if(err){
+                                    res.status(500)
+                                    return next(err)
+                                    }
+                                    console.log(savedNote)
+                                })
+                            })
+                            lom.list.splice(req.params.index, 1)
+                            lom.save((err, savedLom) => {
+                                if(err){
+                                    res.status(500)
+                                    return next(err)
+                                }
+                                return res.status(201).send('Successfully Deleted')
+                            })
+                        }
                     })
+                }else{
+                    return res.status(500).send('You are not assigned to this job')
                 }
             })
-            
-            
-            console.log(req.params.jobID)
         }else{
             res.status(500)
             console.log(err)
@@ -1494,6 +1494,18 @@ accessRouter.post("/membersList/assignMember/:jobID/:userID", (req, res, next) =
                                 res.status(500)
                                 return next(err)
                             }
+                            const newNote = new Note({
+                                madeBy: `${user.firstName} ${user.lastName}`,
+                                fieldChanged: 'memberList',
+                                memberAdded: `${userToAssign.firstName} ${userToAssign.lastName}`,
+                                jobChanged: req.params.jobID
+                            })
+                            newNote.save((err, savedNote) => {
+                                if(err){
+                                res.status(500)
+                                return next(err)
+                                }
+                            })
                             return res.status(200).send(savedJob.assignmentList)
                         })
                     }else{
@@ -1525,12 +1537,24 @@ accessRouter.post("/membersList/unassignMember/:jobID/:userID", (req, res, next)
                         return next(err)
                     }
                     if(job.assignmentList.includes(`${userToAssign.firstName} ${userToAssign.lastName}`)){
-                        job.assignmentList.splice(job.assignmentList.indexOf(`${userToAssign.firstName} ${userToAssign.lastName}`, 1))
+                        job.assignmentList.splice(job.assignmentList.indexOf(`${userToAssign.firstName} ${userToAssign.lastName}`), 1)
                         job.save((err, savedJob) => {
                             if(err){
                                 res.status(500)
                                 return next(err)
                             }
+                            const newNote = new Note({
+                                madeBy: `${user.firstName} ${user.lastName}`,
+                                fieldChanged: 'memberList',
+                                memberRemoved: `${userToAssign.firstName} ${userToAssign.lastName}`,
+                                jobChanged: req.params.jobID
+                            })
+                            newNote.save((err, savedNote) => {
+                                if(err){
+                                res.status(500)
+                                return next(err)
+                                }
+                            })
                             return res.status(200).send(savedJob.assignmentList)
                         })
                     }else{
