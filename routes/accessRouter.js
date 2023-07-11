@@ -12,6 +12,7 @@ const crypto = require('crypto')
 const {GridFsStorage} = require('multer-gridfs-storage')
 const mongoose = require("mongoose")
 const nodemailer = require('nodemailer')
+const job = require("../models/job.js")
 
 const storage = new GridFsStorage({url: process.env.CRED})
 const upload = multer({storage: storage})
@@ -1324,70 +1325,73 @@ accessRouter.get('/getlom/:jobID', (req, res, next) => {
 accessRouter.post('/addtolom/:jobID', (req, res, next)=>{
     User.findById(req.auth._id, (err, user) => {
         if(authCheck(req, user, 'admin', 'strict') || authCheck(req, user, 'field tech', 'strict')){
-            Lom.findOne({forJob: req.params.jobID}, (err, lom) => {
-                if(err){
-                    res.status(500)
-                    return next(err)
-                }
-                if(lom){
-                    lom.list.push(req.body)
-                    lom.save((err, savedLom) => {
+            Job.findById(req.params.jobID, (err, job) => {
+                if(user.access === 'admin'|| user.access === 'field tech' && job.assignmentList.includes(`${user.firstName} ${user.lastName}`)){
+                    Lom.findOne({forJob: req.params.jobID}, (err, lom) => {
                         if(err){
                             res.status(500)
                             return next(err)
                         }
-                        retrieveUser(req.auth._id, (err, thisUser)=>{
-                            userName = thisUser.firstName+' '+thisUser.lastName
-                            const newNote = new Note({
-                                madeBy: userName,
-                                addedNote: `Added ${req.body.material} ${req.body.matCount} ${req.body.matUnit}`,
-                                jobChanged: savedLom._id
-                            })
-                            newNote.save((err, savedNote) => {
+                        if(lom){
+                            lom.list.push(req.body)
+                            lom.save((err, savedLom) => {
                                 if(err){
+                                    res.status(500)
+                                    return next(err)
+                                }
+                                retrieveUser(req.auth._id, (err, thisUser)=>{
+                                    userName = thisUser.firstName+' '+thisUser.lastName
+                                    const newNote = new Note({
+                                        madeBy: userName,
+                                        addedNote: `Added ${req.body.material} ${req.body.matCount} ${req.body.matUnit}`,
+                                        jobChanged: savedLom._id
+                                    })
+                                    newNote.save((err, savedNote) => {
+                                        if(err){
+                                        res.status(500)
+                                        return next(err)
+                                        }
+                                        console.log(savedNote)
+                                    })
+                                })
+                                return res.status(201).send(savedLom.list[savedLom.list.length - 1])
+                            })
+                        }
+                        if(!lom){
+                            console.log(req.body)
+                        const newLom = new Lom(
+                            {
+                                forJob: req.params.jobID
+                            }
+                        )
+                        newLom.list.push(req.body)
+                        newLom.save((err, savedLom) => {
+                            if(err){
                                 res.status(500)
                                 return next(err)
-                                }
-                                console.log(savedNote)
-                            })
-                        })
-                        return res.status(201).send(savedLom.list[savedLom.list.length - 1])
-                    })
-                }
-                if(!lom){
-                    console.log(req.body)
-                const newLom = new Lom(
-                    {
-                        forJob: req.params.jobID
-                    }
-                )
-                newLom.list.push(req.body)
-                newLom.save((err, savedLom) => {
-                    if(err){
-                        res.status(500)
-                        return next(err)
-                    }
-                    retrieveUser(req.auth._id, (err, thisUser)=>{
-                        userName = thisUser.firstName+' '+thisUser.lastName
-                        const newNote = new Note({
-                            madeBy: userName,
-                            addedNote: `Added ${req.body.material} ${req.body.matCount} ${req.body.matUnit}`,
-                            jobChanged: savedLom._id
-                        })
-                        newNote.save((err, savedNote) => {
-                            if(err){
-                            res.status(500)
-                            return next(err)
                             }
+                            retrieveUser(req.auth._id, (err, thisUser)=>{
+                                userName = thisUser.firstName+' '+thisUser.lastName
+                                const newNote = new Note({
+                                    madeBy: userName,
+                                    addedNote: `Added ${req.body.material} ${req.body.matCount} ${req.body.matUnit}`,
+                                    jobChanged: savedLom._id
+                                })
+                                newNote.save((err, savedNote) => {
+                                    if(err){
+                                    res.status(500)
+                                    return next(err)
+                                    }
+                                })
+                            })
+                            return res.status(201).send(savedLom.list[savedLom.list.length - 1])
                         })
+                        }
                     })
-                    return res.status(201).send(savedLom.list[savedLom.list.length - 1])
-                })
+                }else{
+                    return res.status(500).send('You are not assigned to this job')
                 }
             })
-            
-            
-            console.log(req.params.jobID)
         }else{
             res.status(500)
             console.log(err)
@@ -1483,15 +1487,55 @@ accessRouter.post("/membersList/assignMember/:jobID/:userID", (req, res, next) =
                         res.status(500)
                         return next(err)
                     }
+                    if(!job.assignmentList.includes(`${userToAssign.firstName} ${userToAssign.lastName}`)){
+                        job.assignmentList.push(`${userToAssign.firstName} ${userToAssign.lastName}`)
+                        job.save((err, savedJob) => {
+                            if(err){
+                                res.status(500)
+                                return next(err)
+                            }
+                            return res.status(200).send(savedJob.assignmentList)
+                        })
+                    }else{
+                        return res.status(500).send('This member is already assigned here')
+                    }
+                })
 
-                    job.assignmentList.push(`${userToAssign.firstName} ${userToAssign.lastName}`)
-                    job.save((err, savedJob) => {
-                        if(err){
-                            res.status(500)
-                            return next(err)
-                        }
-                        return res.status(200).send(savedJob.assignmentList)
-                    })
+            })
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
+accessRouter.post("/membersList/unassignMember/:jobID/:userID", (req, res, next) => {
+    User.findById(req.auth._id, (err, user) => {
+        if(authCheck(req, user, 'admin', 'strict')){
+            User.findById(req.params.userID, (err, userToAssign) => {
+                if(err){
+                    res.status(500)
+                    return next(err)
+                }
+                Job.findById(req.params.jobID, (err, job) => {
+                
+                    if(err){
+                        res.status(500)
+                        return next(err)
+                    }
+                    if(job.assignmentList.includes(`${userToAssign.firstName} ${userToAssign.lastName}`)){
+                        job.assignmentList.splice(job.assignmentList.indexOf(`${userToAssign.firstName} ${userToAssign.lastName}`, 1))
+                        job.save((err, savedJob) => {
+                            if(err){
+                                res.status(500)
+                                return next(err)
+                            }
+                            return res.status(200).send(savedJob.assignmentList)
+                        })
+                    }else{
+                        return res.status(500).send('This member is not assigned here')
+                    }
                 })
 
             })
