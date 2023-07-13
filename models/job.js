@@ -24,12 +24,16 @@ const pocSchema = new Schema({
   }
 })
 
-// const assignedFieldTechSchema = new Schema({
-//   fieldTechName: {
-//       type: String,
-//       required: true
-//   }
-// })
+const assignedFieldTechSchema = new Schema({
+  fieldTechName: {
+    type: String,
+    required: true
+  },
+  fieldTechID: {
+    type: String,
+    required: true
+  }
+})
 
 const addressSchema = new Schema({
     line1:{
@@ -155,7 +159,7 @@ const jobSchema = new Schema({
     type: Number
   },
   assignmentList: {
-    type: [String]
+    type: [assignedFieldTechSchema]
   }
 })
 

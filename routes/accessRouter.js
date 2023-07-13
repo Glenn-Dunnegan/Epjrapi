@@ -1482,13 +1482,17 @@ accessRouter.post("/membersList/assignMember/:jobID/:userID", (req, res, next) =
                     return next(err)
                 }
                 Job.findById(req.params.jobID, (err, job) => {
-                
                     if(err){
                         res.status(500)
                         return next(err)
                     }
-                    if(!job.assignmentList.includes(`${userToAssign.firstName} ${userToAssign.lastName}`)){
-                        job.assignmentList.push(`${userToAssign.firstName} ${userToAssign.lastName}`)
+                    if(!job.assignmentList.some(person => 
+                        person.fieldTechID === req.params.userID
+                    )){
+                        job.assignmentList.push({
+                            fieldTechName: `${userToAssign.firstName} ${userToAssign.lastName}`,
+                            fieldTechID: req.params.userID
+                        })
                         job.save((err, savedJob) => {
                             if(err){
                                 res.status(500)
@@ -1536,8 +1540,10 @@ accessRouter.post("/membersList/unassignMember/:jobID/:userID", (req, res, next)
                         res.status(500)
                         return next(err)
                     }
-                    if(job.assignmentList.includes(`${userToAssign.firstName} ${userToAssign.lastName}`)){
-                        job.assignmentList.splice(job.assignmentList.indexOf(`${userToAssign.firstName} ${userToAssign.lastName}`), 1)
+                    if(job.assignmentList.some(person => 
+                        person.fieldTechID === req.params.userID
+                    )){
+                        job.assignmentList.splice(job.assignmentList.map(person => person.fieldTechID).indexOf(req.params.userID), 1)
                         job.save((err, savedJob) => {
                             if(err){
                                 res.status(500)
