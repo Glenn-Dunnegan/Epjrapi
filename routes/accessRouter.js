@@ -272,44 +272,45 @@ accessRouter.put('/changepassword/:userID', (req, res, next) => {
 accessRouter.put('/updateaddress', (req, res, next) => {
    
     User.findById(req.auth._id, (err, user) => {
-        let was
         let userName
+        let was
         if(authCheck(req, user, 'admin', 'update') || authCheck(req, user, 'member', 'update')){
-            was = {...user.address}
-            user.address.line1 = req.body.address.line1.trim().replace(/  +/g, ' ')
-            user.address.line2 = (req.body.address.line2 ? req.body.address.line2.trim().replace(/  +/g, ' ') : '')
-            user.address.city = req.body.address.city.trim().replace(/  +/g, ' ')
-            user.address.state = req.body.address.state.trim().replace(/  +/g, ' ')
-            user.address.zip = req.body.address.zip.trim().replace(/  +/g, ' ')
-            if (err){
-                res.status(500)
-                return next(err);
-            }
-            // user.password = req.body.password
-            // user.tempRequested = false
-            // user.tempPassword = ''
-            user.save(function(err, result){
+            retrieveUser(req.auth._id, (err, thisUser)=>{
+                was = {...thisUser.address}
+                retrieveUser(req.auth._id, (err, thisUserInfo) => {
+                    user.address.line1 = req.body.address.line1.trim().replace(/  +/g, ' ')
+                    user.address.line2 = (req.body.address.line2 ? req.body.address.line2.trim().replace(/  +/g, ' ') : '')
+                    user.address.city = req.body.address.city.trim().replace(/  +/g, ' ')
+                    user.address.state = req.body.address.state.trim().replace(/  +/g, ' ')
+                    user.address.zip = req.body.address.zip.trim().replace(/  +/g, ' ')
                 if (err){
                     res.status(500)
                     return next(err);
-                }else{
-                    userName = user.firstName+' '+user.lastName
-                    const newNote = new Note({
-                        madeBy: userName,
-                        fieldChanged: Object.keys(req.body)[0],
-                        changedFrom: was,
-                        changedTo: {...req.body.address},
-                        jobChanged: req.auth._id
-                    })
-                    newNote.save((err, savedNote) => {
-                        if(err){
-                        console.log(err)
-                        }
-                    })
-                    const token = jwt.sign(user.withoutPassword(), process.env.SECRET)
-                    return res.status(200).send({ token, user: result.withoutPassword()})
                 }
-            })             
+                user.save(function(err, result){
+                    if (err){
+                        res.status(500)
+                        return next(err);
+                    }else{
+                        userName = user.firstName+' '+user.lastName
+                        const newNote = new Note({
+                            madeBy: userName,
+                            fieldChanged: Object.keys(req.body)[0],
+                            changedFrom: was,
+                            changedTo: {...req.body.address},
+                            jobChanged: req.auth._id
+                        })
+                        newNote.save((err, savedNote) => {
+                            if(err){
+                            console.log(err)
+                            }
+                        })
+                        const token = jwt.sign(user.withoutPassword(), process.env.SECRET)
+                        return res.status(200).send({ token, user: result.withoutPassword()})
+                    }
+                })             
+                })
+            })
         }else if(err){
             console.log(err)
         }else{
@@ -327,37 +328,40 @@ accessRouter.put('/updateaddressbyadmin/:userID', (req, res, next) => {
             let userName
             retrieveUser(req.params.userID, (err, thisUser)=>{
                 was = {...thisUser.address}
-                thisUser.address.line1 = req.body.address.line1.trim().replace(/  +/g, ' ')
-                thisUser.address.line2 = (req.body.address.line2 ? req.body.address.line2.trim().replace(/  +/g, ' ') : '')
-                thisUser.address.city = req.body.address.city.trim().replace(/  +/g, ' ')
-                thisUser.address.state = req.body.address.state.trim().replace(/  +/g, ' ')
-                thisUser.address.zip = req.body.address.zip.trim().replace(/  +/g, ' ')
-            if (err){
-                res.status(500)
-                return next(err);
-            }
-            thisUser.save(function(err, result){
-                if (err){
-                    res.status(500)
-                    return next(err);
-                }else{
-                    userName = user.firstName+' '+user.lastName
-                    const newNote = new Note({
-                        madeBy: userName,
-                        fieldChanged: Object.keys(req.body)[0],
-                        changedFrom: was,
-                        changedTo: {...req.body.address},
-                        jobChanged: req.params.userID
-                    })
-                    newNote.save((err, savedNote) => {
-                        if(err){
-                        console.log(err)
+                retrieveUser(req.params.userID, (err, thisUserInfo) => {
+                    thisUserInfo.address.line1 = req.body.address.line1.trim().replace(/  +/g, ' ')
+                    thisUserInfo.address.line2 = (req.body.address.line2 ? req.body.address.line2.trim().replace(/  +/g, ' ') : '')
+                    thisUserInfo.address.city = req.body.address.city.trim().replace(/  +/g, ' ')
+                    thisUserInfo.address.state = req.body.address.state.trim().replace(/  +/g, ' ')
+                    thisUserInfo.address.zip = req.body.address.zip.trim().replace(/  +/g, ' ')
+                    if (err){
+                        res.status(500)
+                        return next(err);
+                    }
+                    thisUserInfo.save(function(err, result){
+                        if (err){
+                            res.status(500)
+                            return next(err);
+                        }else{
+                            userName = user.firstName+' '+user.lastName
+                            //console.log(was)
+                            const newNote = new Note({
+                                madeBy: userName,
+                                fieldChanged: Object.keys(req.body)[0],
+                                changedFrom: was,
+                                changedTo: {...req.body.address},
+                                jobChanged: req.params.userID
+                            })
+                            newNote.save((err, savedNote) => {
+                                if(err){
+                                console.log(err)
+                                }
+                            })
+                            resMsg = 'Update Successful'
+                            return res.status(200).send(resMsg)
                         }
-                    })
-                    resMsg = 'Update Successful'
-                    return res.status(200).send(resMsg)
-                }
-            })          
+                    })       
+                })   
             })   
         }else if(err){
             console.log(err)
