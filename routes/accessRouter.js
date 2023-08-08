@@ -1581,4 +1581,54 @@ accessRouter.post("/membersList/unassignMember/:jobID/:userID", (req, res, next)
     })
 })
 
+accessRouter.put('/updaterole/:userID', (req, res, next) => {
+    User.findById(req.auth._id, (err, user) => {
+        console.log(req.body)
+        let userName
+        let was
+        if(authCheck(req, user, 'admin', 'update')){
+            retrieveUser(req.params.userID, (err, thisUser)=>{
+                was = thisUser.access
+                retrieveUser(req.params.userID, (err, thisUserInfo) => {
+                    if(req.body.access === 'field tech' || req.body.access === 'member'){
+                        thisUserInfo.access = req.body.access
+                    }else{
+                        return res.status(500).send('Invalid Role')
+                    }
+                if(err){
+                    res.status(500)
+                    return next(err);
+                }
+                thisUserInfo.save(function(err, result){
+                    if (err){
+                        res.status(500)
+                        return next(err);
+                    }else{
+                        userName = user.firstName+' '+user.lastName
+                        const newNote = new Note({
+                            madeBy: userName,
+                            fieldChanged: Object.keys(req.body)[0],
+                            changedFrom: was,
+                            changedTo: req.body.access,
+                            jobChanged: req.params.userID
+                        })
+                        newNote.save((err, savedNote) => {
+                            console.log(savedNote)
+                            if(err){
+                            console.log(err)
+                            }
+                        })
+                        return res.status(200).send('Update Successfull')
+                    }
+                })             
+                })
+            })
+        }else if(err){
+            console.log(err)
+        }else{
+            return next(new Error("Not Authorized"))
+        }
+    })
+})
+
 module.exports = accessRouter
