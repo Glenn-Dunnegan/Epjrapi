@@ -412,7 +412,7 @@ accessRouter.put('/generateotp/:userID', (req, res, next) => {
    
     User.findById(req.auth._id, (err, user) => {
         
-        if(authCheck(req, user, 'admin'||'member', 'update')){
+        if(authCheck(req, user, 'member', 'update')){
             user.otp = `${Math.floor(1000000 + Math.random() * 9000000)}`
 
             const details = {
@@ -455,7 +455,7 @@ accessRouter.put('/checkotp/:userID', (req, res, next) => {
    
     User.findById(req.auth._id, (err, user) => {
         
-        if(authCheck(req, user, 'admin' || 'member', 'update')){
+        if(authCheck(req, user, 'member', 'update')){
             if(Number(req.body.otp) === user.otp && req.body.otp.length > 3){
                 user.isVerified = true
             }else{

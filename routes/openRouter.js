@@ -4,6 +4,7 @@ require('dotenv').config()
 const User = require('../models/user.js')
 const Job = require('../models/job.js')
 const jwt = require('jsonwebtoken')
+const {expressjwt: expressJwt} = require('express-jwt')
 const multer = require('multer')
 const path = require('path')
 const crypto = require('crypto')
@@ -25,7 +26,7 @@ conn.once('open', () => {
     })
 })
 
-openRouter.get('/Images/:jobID', (req, res, next) => {
+openRouter.get('/Images/:jobID', expressJwt({ secret: process.env.SECRET, algorithms: ['HS256'] }), (req, res, next) => {
     Job.findById({_id: req.params.jobID}, (err, job) => {
         if(err){
             res.status(500)
@@ -40,14 +41,6 @@ openRouter.get('/Images/:jobID', (req, res, next) => {
             
         
     })
-})
-
-openRouter.get('/test', (req, res, next) => {
-    
-        res.send('connection successful')
-    
-    
-
 })
 
 module.exports = openRouter

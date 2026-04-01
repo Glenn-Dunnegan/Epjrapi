@@ -101,7 +101,6 @@ userSchema.pre("save", function(next){
 
 userSchema.methods.checkPassword = function(passwordAttempt, callback){
     bcrypt.compare(passwordAttempt, this.password, (err, isMatch) => {
-        console.log(this.password)
         if(err) return callback(err)
         return callback(null, isMatch)
     })

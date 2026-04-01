@@ -17,7 +17,6 @@ authRouter.post("/signup", (req,res,next) => {
             return next(new Error("That email is already taken"))
         }
         if(req.body.password.length >= 8){
-             console.log(req.body)
             // const trimmedReq = Object.keys(req.body).map(k => req.body[k] = typeof req.body[k] == 'string' ? req.body[k].trim().replace(/  +/g, ' ') : req.body[k])
             // console.log(trimmedReq)
             //.trim().replace(/  +/g, ' ')
@@ -77,10 +76,6 @@ authRouter.post("/login", (req,res,next) => {
                 return next(new Error("Email or Password are incorrect"))
             }
             if(!isMatch){
-                if(user.tempPassword === req.body.password && req.body.password.length > 5){
-                    const token = jwt.sign(user.withoutPassword(), process.env.SECRET)
-                    return res.status(200).send({ token, user: user.withoutPassword() })
-                }
                 res.status(403)
                 return next(new Error("Email or Password are incorrect"))
             }

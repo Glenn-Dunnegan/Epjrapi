@@ -42,7 +42,7 @@ forgotPasswordRouter.put('/requestpassword/:userEmail', (req, res, next) => {
             {email: req.params.userEmail},
             
             {
-                tempPassword: `${Math.floor(10000000 + Math.random() * 90000000)}`,
+                tempPassword: crypto.randomBytes(6).toString('hex'),
                 tempRequested: true
             },
             {new: true},
